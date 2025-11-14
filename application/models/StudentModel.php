@@ -54,36 +54,5 @@ class StudentModel extends CI_Model {
 
     public function addStudent($data) {
         $this->db->insert('students', $data);
-    }
-    
-    
-    public function get_students($search = '') {
-        $this->db->where('status', 'active');
-        
-        if (!empty($search)) {
-            $this->db->group_start();
-            $this->db->like('name', $search);
-            $this->db->or_like('email', $search);
-            $this->db->group_end();
-        }
-        
-        return $this->db->get('students')->result_array();
-    }
-
-    public function get_student($id) {
-        return $this->db->get_where('students', ['id' => $id])->row_array();
-    }
-
-    
-
-    public function update_student($id, $data) {
-        $this->db->where('id', $id);
-        return $this->db->update('students', $data);
-    }
-
-    public function delete_student($id) {
-        $this->db->where('id', $id);
-        return $this->db->update('students', ['status' => 'inactive']);
-    }
+    }    
 }
-?>
