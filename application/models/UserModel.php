@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class StudentModel extends CI_Model {
+class UserModel extends CI_Model {
 
     public function __construct() {
         parent::__construct();
@@ -9,7 +9,7 @@ class StudentModel extends CI_Model {
     }
 
     /**Function used for pagenation Function (1/2), used by controller */
-    public function getPaginatedStudents($limit, $offset, $search = '') //Search parameter added for search functionality; else exclude it. Model Step (1/3)
+    public function getPaginatedUsers($limit, $offset, $search = '') //Search parameter added for search functionality; else exclude it. Model Step (1/3)
     {
 
         // NEW: Add search conditions if search term exists. Model Step (2/3)
@@ -21,11 +21,11 @@ class StudentModel extends CI_Model {
             $this->db->group_end();
         }
 
-        return $this->db->limit($limit, $offset)->get('students')->result(); // remains same, even when using search functionality;
+        return $this->db->limit($limit, $offset)->get('users')->result(); // remains same, even when using search functionality;
     }
 
     /**Function used for pagenation Function (2/2), used by controller */
-    public function getTotalStudents($search = '') {
+    public function getTotalUsers($search = '') {
         /**Code when not using pagenation */
         /*return $this->db->get('students')->result(); //result() returns an array of objects*/
         /****Code for without pagenation ends here */
@@ -39,7 +39,7 @@ class StudentModel extends CI_Model {
             $this->db->or_like('phone', $search);
             $this->db->group_end();
         }
-        return $this->db->count_all('students');
+        return $this->db->count_all('users');
         /****Code for with pagenation ends here */
     }
 
@@ -52,7 +52,17 @@ class StudentModel extends CI_Model {
         return $query->result();
     }
 
-    public function addStudent($data) {
-        $this->db->insert('students', $data);
-    }    
+    public function getAllRoles() {
+        $this->db->select('role_id, role_name');
+        $this->db->from('roles');
+        $this->db->order_by('role_name', 'ASC');
+        $query = $this->db->get();
+        
+        return $query->result();
+    }
+
+    public function addUsers($data) {
+        $this->db->insert('users', $data);
+    }
+    
 }

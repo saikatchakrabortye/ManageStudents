@@ -1,23 +1,23 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Students extends CI_Controller {
+class Users extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
-        $this->load->model('StudentModel');
+        $this->load->model('UserModel');
     }
 
     public function index() {
-        $this->load->view('StudentDashboard');
+        $this->load->view('UserDashboard');
     }
 
-   public function getStudents() {
+   public function getUsers() {
         header('Content-Type: application/json');
 
         /****Code for without pagenation */
-        /*$students = $this->StudentModel->getAllStudents();
-        echo json_encode($students); // Converts PHP objects to JSON string*/
+        /*$users = $this->UserModel->getAllUsers();
+        echo json_encode($users); // Converts PHP objects to JSON string*/
         /****Code for without pagenation ends here */
         
         /****Code for with pagenation starts here */
@@ -36,13 +36,13 @@ class Students extends CI_Controller {
         /*$students = $this->StudentModel->getPaginatedStudents($limit, $offset);*/
         /**Code line ends here, if not using search functionality */
 
-        $students = $this->StudentModel->getPaginatedStudents($limit, $offset, $search); // Pass search term if using search functionality; Controller Step (2/2)
+        $users = $this->UserModel->getPaginatedUsers($limit, $offset, $search); // Pass search term if using search functionality; Controller Step (2/2)
 
-        $total = $this->StudentModel->getTotalStudents($search);
+        $total = $this->UserModel->getTotalUsers($search);
         
         // Return both students and total count
         echo json_encode([
-            'students' => $students,
+            'users' => $users,
             'total' => $total
         ]);
         /****Code for with pagenation ends here */
@@ -50,10 +50,10 @@ class Students extends CI_Controller {
 
     public function getCities() {
         header('Content-Type: application/json');
-        echo json_encode($this->StudentModel->getCities());
+        echo json_encode($this->UserModel->getCities());
     }
 
-    public function addStudent() {
+    public function addUser() {
         header('Content-Type: application/json');
         
         $profilePicFilename = $this->uploadFile();
@@ -66,16 +66,17 @@ class Students extends CI_Controller {
             'city' => $this->input->post('city'),
             'dob' => $this->input->post('dob'),
             'password' => $this->input->post('password'),
-            'status' => 'active'
+            'status' => 'active',
+            'role_id' => $this->input->post('roleId')
         ];
         // Add profile pic only if file was uploaded
         if ($profilePicFilename) {
-            $data['profile_pic_id'] = $profilePicFilename;
+            $data['profile_pic'] = $profilePicFilename;
         }
 
-        $this->StudentModel->addStudent($data);
+        $this->UserModel->addUsers($data);
         
-        echo json_encode(['success' => true, 'message' => 'Student added successfully']);
+        echo json_encode(['success' => true, 'message' => 'User added successfully']);
     }
 
     public function uploadFile() {
@@ -85,7 +86,7 @@ class Students extends CI_Controller {
         }
         // Upload profile picture
         $base_dir = getcwd() . '/uploads/';
-        $upload_path = $base_dir . 'profile_pics/students/';
+        $upload_path = $base_dir . 'profile_pics/users/';
         $file_extension = pathinfo($_FILES['profile_pic']['name'], PATHINFO_EXTENSION);
         $profile_filename = uniqid() . '.' . $file_extension;
         $profile_file_path = $upload_path . $profile_filename;
@@ -94,5 +95,14 @@ class Students extends CI_Controller {
             return null;
         }
         return $profile_filename;
+    }
+    
+    public function getRoles() {
+        header('Content-Type: application/json');
+        
+        // Assuming you have a method in your model to get roles
+        $roles = $this->UserModel->getAllRoles();
+        
+        echo json_encode($roles);
     }
 }
