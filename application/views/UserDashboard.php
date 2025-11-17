@@ -278,27 +278,27 @@
                 <label class="form-label">Role</label>
                 </div>    
                 <div class="form-group">
-                    <input type="text" name="name" class="form-input" placeholder="">
+                    <input type="text" name="name" class="form-input" placeholder="" data-validation>
                     <label class="form-label">Full Name</label>
                 </div>
                 
                 <div class="form-group">
-                    <input type="email" name="email" class="form-input" placeholder="">
+                    <input type="email" name="email" class="form-input" placeholder="" data-validation>
                     <label class="form-label">Email Address</label>
                 </div>
                 
                 <div class="form-group">
-                    <input type="tel" name="phone" class="form-input" placeholder="">
+                    <input type="tel" name="phone" class="form-input" placeholder="" data-validation>
                     <label class="form-label">Phone</label>
                 </div>
                 <div class="form-group">
-                    <textarea id="address" name="address" class="form-input" placeholder="" rows="4"></textarea>
+                    <textarea id="address" name="address" class="form-input" placeholder="" rows="4" data-validation></textarea>
                     <label class="form-label">Address</label>
                 </div>
                 <div class="form-group">
                     <!--<input type="text" name="city" class="form-input" placeholder="">-->
                     <!-- ************** For City Dropdown with Search ***************** *-->
-                    <input type="text" id="cityInput" name="city" placeholder="" class="form-input" readonly>
+                    <input type="text" id="cityInput" name="city" placeholder="" class="form-input" readonly data-validation>
                     <label class="form-label">City</label>
                     <div id="cityDropdown" class="dropdown">
                         <input type="text" id="citySearch" placeholder="Search cities..." class="form-input">
@@ -316,7 +316,7 @@
                     <label class="form-label">Upload Profile Picture</label>
                 </div>
                 <div class="form-group">
-                    <input type="password" name="password" id="password" class="form-input" placeholder="">
+                    <input type="password" name="password" id="password" class="form-input" placeholder="" data-validation>
                     <label class="form-label">Set Password</label>
                 </div>
                 
@@ -556,11 +556,13 @@
                 // Clear existing options except the first one
                 roleSelect.innerHTML = '<option value="">Select Role</option>';
                 
-                // Populate dropdown with roles
-                roles.forEach(role => {
+                // Populate dropdown with roles and exclude admin having role_id=1
+                roles
+                .filter(role => role.role_id != 1)
+                .forEach(role => {
                     const option = document.createElement('option');
-                    option.value = role.role_id;  // This will be submitted as value
-                    option.textContent = role.role_name;  // This is what user sees
+                    option.value = role.role_id;
+                    option.textContent = role.role_name;
                     roleSelect.appendChild(option);
                 });
                 
@@ -602,7 +604,49 @@
 
         });
         /***************** Code ends here To Execute When Submit Button in Add user Form is clicked ************ */
+        document.querySelectorAll('[data-validation]').forEach(input => {
+    input.addEventListener('blur', async function() {
+        const formData = new FormData();
+        const fieldName = this.name;
+        formData.append('field', fieldName);
+        
+        if (this.type === 'file') {
+            formData.append('value', this.files[0]);
+        } else {
+            formData.append('value', this.value);
+        }
 
+        const response = await fetch(`http://localhost/ManageStudents/Students/validateField`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+                
+        
+        
+        
+        const cleanMessage = result.message.replace(/<p>|<\/p>/g, '').trim();
+        
+        // Remove existing error message if validation passed
+        const existingError = this.parentNode.querySelector('.error-message');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        if (!result.success) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.style.color = 'red';
+            errorDiv.style.fontSize = '0.875rem';
+            errorDiv.style.marginTop = '0.25rem';
+            errorDiv.textContent = cleanMessage;
+            this.parentNode.appendChild(errorDiv);
+        }
+        
+        
+    });
+});
     </script>
 </body>
 </html>

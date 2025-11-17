@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Students extends CI_Controller {
+class Roles extends CI_Controller {
 
     public function __construct() {
         parent::__construct();
@@ -14,14 +14,18 @@ class Students extends CI_Controller {
             redirect('Login');
         }
 
-        $this->load->model('StudentModel');
+        $this->load->model('RoleModel');
     }
 
     public function index() {
-        $this->load->view('StudentDashboard');
+        if($this->session->userdata('userId') && $this->session->userdata('role') === 'Admin'){
+        $this->load->view('RoleDashboard');}
+        else{
+            die("No Permissions");
+        }
     }
 
-   public function getStudents() {
+   public function getRoles() {
         header('Content-Type: application/json');
 
         /****Code for without pagenation */
@@ -45,76 +49,39 @@ class Students extends CI_Controller {
         /*$students = $this->StudentModel->getPaginatedStudents($limit, $offset);*/
         /**Code line ends here, if not using search functionality */
 
-        $students = $this->StudentModel->getPaginatedStudents($limit, $offset, $search); // Pass search term if using search functionality; Controller Step (2/2)
+        $roles = $this->RoleModel->getPaginatedRoles($limit, $offset, $search); // Pass search term if using search functionality; Controller Step (2/2)
 
-        $total = $this->StudentModel->getTotalStudents($search);
+        $total = $this->RoleModel->getTotalRoles($search);
         
         // Return both students and total count
         echo json_encode([
-            'students' => $students,
+            'roles' => $roles,
             'total' => $total
         ]);
         /****Code for with pagenation ends here */
     }
 
-    public function getCities() {
-        header('Content-Type: application/json');
-        echo json_encode($this->StudentModel->getCities());
-    }
 
-    public function addStudent() {
+    public function addRole() {
         header('Content-Type: application/json');
         
-        $profilePicFilename = $this->uploadFile();
 
         $data = [
-            'name' => $this->input->post('name'),
-            'email' => $this->input->post('email'),
-            'phone' => $this->input->post('phone'),
-            'address' => $this->input->post('address'),
-            'city' => $this->input->post('city'),
-            'dob' => $this->input->post('dob'),
-            'password' => $this->input->post('password'),
-            'status' => 'active'
+            'role_name' => $this->input->post('roleName'),
+            'description' => $this->input->post('description')
         ];
-        // Add profile pic only if file was uploaded
-        if ($profilePicFilename) {
-            $data['profile_pic_id'] = $profilePicFilename;
-        }
-
         
-        
-        
-
         try {
-        $this->StudentModel->addStudent($data);
-        echo json_encode(['success' => true, 'message' => 'Student added successfully']);
+        $this->RoleModel->addRole($data);
+        echo json_encode(['success' => true, 'message' => 'Role added successfully']);
     } catch (Exception $e) {
         // Check if it's a duplicate entry error
         if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
-            echo json_encode(['success' => false, 'message' => 'Email or phone number already exists']);
+            echo json_encode(['success' => false, 'message' => 'Role already exists']);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Error adding student: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Error adding role: ' . $e->getMessage()]);
         }
     }
-    }
-
-    public function uploadFile() {
-    // Check if profile_pic file is received
-        if (empty($_FILES['profile_pic']['name']) || $_FILES['profile_pic']['error'] !== UPLOAD_ERR_OK) {
-            return null;
-        }
-        // Upload profile picture
-        $base_dir = getcwd() . '/uploads/';
-        $upload_path = $base_dir . 'profile_pics/students/';
-        $file_extension = pathinfo($_FILES['profile_pic']['name'], PATHINFO_EXTENSION);
-        $profile_filename = uniqid() . '.' . $file_extension;
-        $profile_file_path = $upload_path . $profile_filename;
-
-        if (!move_uploaded_file($_FILES['profile_pic']['tmp_name'], $profile_file_path)) {
-            return null;
-        }
-        return $profile_filename;
     }
 
     public function validateField() {
@@ -123,9 +90,11 @@ class Students extends CI_Controller {
         
         $rules = [
             'name' => 'required|min_length[8]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]',
+            'roleName' => 'required|min_length[2]|max_length[30]|regex_match[/^[a-zA-Z\s]+$/]',
             'email' => 'required|valid_email|max_length[100]',
             'phone' => 'required|regex_match[/^\+?[1-9]\d{1,14}$/]|min_length[10]|max_length[10]',
             'address' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]',
+            'description' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]',
             'city' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\-]+$/]',
             //'profile_pic' => 'uploaded[profile_pic]|max_size[profile_pic,5120]|is_image[profile_pic]|mime_in[profile_pic,image/jpeg,image/png,image/gif,image/webp]|ext_in[profile_pic,jpg,jpeg,png,gif,webp]',
             //'password' => 'min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',

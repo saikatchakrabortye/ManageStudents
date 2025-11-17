@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard</title>
+    <title>Roles Dashboard</title>
     <style>
         /*Below style centers the table div and all others */
         body {
@@ -226,13 +226,13 @@
 </head>
 <body>
     <div style="padding: 2rem; text-align: center;">
-        <h1>Student Dashboard</h1>
+        <h1>Roles Dashboard</h1>
         
         <!-- NEW: Search input -->
-        <input type="text" id="searchInput" placeholder="Search by name, email or phone..." 
+        <input type="text" id="searchInput" placeholder="Search by Role Name..." 
         style="margin-bottom: 20px; padding: 10px; width: 300px; border: 1px solid #ddd; border-radius: 4px;">
         <!--To show add form modal-->
-        <button id="addStudentModalBtn" class="submit-btn">Add Student</button> 
+        <button id="addRoleModalBtn" class="submit-btn">Add Role</button> 
     </div>
 
     <!-- ************************* Show Students Table ********************************************************* -->
@@ -242,10 +242,8 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Profile</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
+                    <th>Role Name</th>
+                    <th>Description</th>
                     <th>Status</th>
                 </tr>
             </thead>
@@ -264,56 +262,25 @@
     <!-- ************************* Show Students Table Ends Here ************************************************ -->
 
     <!-- ************************************  Add Student Modal Structure ******************************* -->
-    <div id="studentModal" class="modal">
+    <div id="roleModal" class="modal">
         <div class="modal-content">
             <span class="close" id="closeModalBtn">&times;</span>
-            <h2>Add New Student</h2>
+            <h2>Add New Role</h2>
             
-            <form id="studentForm" method="post" enctype="multipart/form-data">
+            <form id="roleForm" method="post" enctype="multipart/form-data">
                 <div class="form-group">
-                    <input type="text" name="name" class="form-input" placeholder="" data-validation>
-                    <label class="form-label">Full Name</label>
+                    <input type="text" name="roleName" class="form-input" placeholder="" data-validation>
+                    <label class="form-label">Role Name</label>
                 </div>
                 
+            
                 <div class="form-group">
-                    <input type="email" name="email" class="form-input" placeholder="" data-validation>
-                    <label class="form-label">Email Address</label>
+                    <textarea id="address" name="description" class="form-input" placeholder="" rows="4" data-validation></textarea>
+                    <label class="form-label">Description</label>
                 </div>
                 
-                <div class="form-group">
-                    <input type="tel" name="phone" class="form-input" placeholder="" data-validation>
-                    <label class="form-label">Phone</label>
-                </div>
-                <div class="form-group">
-                    <textarea id="address" name="address" class="form-input" placeholder="" rows="4" data-validation></textarea>
-                    <label class="form-label">Address</label>
-                </div>
-                <div class="form-group">
-                    <!--<input type="text" name="city" class="form-input" placeholder="">-->
-                    <!-- ************** For City Dropdown with Search ***************** *-->
-                    <input type="text" id="cityInput" name="city" placeholder="" class="form-input" readonly data-validation>
-                    <label class="form-label">City</label>
-                    <div id="cityDropdown" class="dropdown">
-                        <input type="text" id="citySearch" placeholder="Search cities..." class="form-input">
-                        <div id="cityResults"></div>
-                    </div>
-                    <!--City dropdown with search container ends here-->
-                    
-                </div>
-                <div class="form-group">
-                    <input type="date" name="dob" class="form-input" placeholder="">
-                    <label class="form-label">Birth Date</label>
-                </div>
-                <div class="form-group">
-                    <input type="file" id="profile_pic" name="profile_pic" class="form-input" accept="image/*" placeholder="">
-                    <label class="form-label">Upload Profile Picture</label>
-                </div>
-                <div class="form-group">
-                    <input type="password" name="password" id="password" class="form-input" placeholder="" data-validation>
-                    <label class="form-label">Set Password</label>
-                </div>
                 
-                <button type="submit" class="submit-btn">Enroll Student</button>
+                <button type="submit" class="submit-btn">Add Role</button>
             </form>
         </div>
     </div>
@@ -376,19 +343,19 @@
 
     <script>
         // Get elements
-        const studentModal = document.getElementById('studentModal');
-        const addStudentModalBtn = document.getElementById('addStudentModalBtn');
+        const roleModal = document.getElementById('roleModal');
+        const addRoleModalBtn = document.getElementById('addRoleModalBtn');
         const closeModalBtn = document.getElementById('closeModalBtn');
-        const studentForm = document.getElementById('studentForm');
+        const roleForm = document.getElementById('roleForm');
         
         // Open modal
-        addStudentModalBtn.addEventListener('click', function() {
-            studentModal.style.display = 'flex';
+        addRoleModalBtn.addEventListener('click', function() {
+            roleModal.style.display = 'flex';
         });
         
         // Close modal
         closeModalBtn.addEventListener('click', function() {
-            studentModal.style.display = 'none';
+            roleModal.style.display = 'none';
         });
         
         
@@ -406,24 +373,15 @@
         const itemsPerPage = 5; // Show 5 students per page
         async function loadStudents(page = 1) {
             const searchTerm = document.getElementById('searchInput').value; // Search Specific: Get search value
-            const response = await fetch(`http://localhost/ManageStudents/Students/getStudents?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`); // Modified url by add &search=${encodeURIComponent(searchTerm)}` for search functionality
+            const response = await fetch(`http://localhost/ManageStudents/Roles/getRoles?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`); // Modified url by add &search=${encodeURIComponent(searchTerm)}` for search functionality
             const data = await response.json(); // Expect {students: [], total: 100}
         /**Pagenation specific code ends here. Only after rendering students, we call updatePagenation() function as below */
 
             
-            /* Display Profile Pic or Fallback to display Full Name Initials */
+            
             document.querySelector('#studentsTable tbody').innerHTML = 
             //students.map(s => `<tr><td>${s.id}</td> //when not using pagenation
-            data.students.map(s => `<tr><td>${s.id}</td>
-            <td>
-                ${s.profile_pic_id ? 
-                `<img src="http://localhost/ManageStudents/uploads/profile_pics/students/${s.profile_pic_id}" alt="Profile" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : 
-                `<div style="width:40px;height:40px;border-radius:50%;background:#0056b3; color: white; display:flex;align-items:center;justify-content:center;">
-                ${getInitials(s.name)}
-                </div>`
-                }
-            </td>
-            <td>${s.name}</td><td>${s.email}</td><td>${s.phone}</td><td>${s.status}</td></tr>`).join('');
+            data.roles.map(r => `<tr><td>${r.role_id}</td><td>${r.role_name}</td><td>${r.description}</td><td>${r.status}</td></tr>`).join('');
 
             updatePagination(data.total, page); // Update pagination controls; Pagenation Step (2/3)
         }
@@ -469,54 +427,14 @@
 
         /************** Javascript code for Fetching Students data and loading in table ends here *********** */
 
-        /*************************** City Dropdown with Search **************************** */
-        // City dropdown functions
-        let allCities = [];
-
-        // Load cities on focus
-        document.getElementById('cityInput').addEventListener('focus', async function() {
-            if (allCities.length === 0) {
-                const response = await fetch('http://localhost/ManageStudents/Students/getCities');
-                allCities = (await response.json()).map(c => c.name);
-            }
-            document.getElementById('cityDropdown').style.display = 'block';
-            filterCities();
-        });
-
-        // Filter cities on typing
-        document.getElementById('citySearch').addEventListener('input', filterCities);
-
-        function filterCities() {
-            const search = document.getElementById('citySearch').value.toLowerCase();
-            const filtered = allCities.filter(city => city.toLowerCase().includes(search));
-            
-            const results = document.getElementById('cityResults');
-            results.innerHTML = filtered.length 
-                ? filtered.map(city => `<div onclick="selectCity('${city}')">${city}</div>`).join('')
-                : '<div style="padding: 10px; color: #666;">No cities found</div>';
-        }
-
-        function selectCity(city) {
-            document.getElementById('cityInput').value = city;
-            document.getElementById('cityDropdown').style.display = 'none';
-            document.getElementById('citySearch').value = '';
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('#cityDropdown') && e.target.id !== 'cityInput') {
-                document.getElementById('cityDropdown').style.display = 'none';
-            }
-        });
-        /****************************** Code ends here for dropdown with search ******************* */
-
+        
         /***************** Code To Execute When Submit Button in Add Student Form is clicked ************ */
-        document.getElementById('studentForm').addEventListener('submit', async function(e) {
+        document.getElementById('roleForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const formData = new FormData(this);
 
         try {
-        const response = await fetch(`http://localhost/ManageStudents/Students/addStudent`, {
+        const response = await fetch(`http://localhost/ManageStudents/Roles/addRole`, {
             method: 'POST',
             body: formData
         });
@@ -527,7 +445,7 @@
         if (result.success) {
             // Redirect to student list after 1 second
             setTimeout(() => {
-                window.location.href = `http://localhost/ManageStudents/Students`;
+                window.location.href = `http://localhost/ManageStudents/Roles`;
             }, 1000);
         }
         } catch (error) {
@@ -549,7 +467,7 @@
             formData.append('value', this.value);
         }
 
-        const response = await fetch(`http://localhost/ManageStudents/Students/validateField`, {
+        const response = await fetch(`http://localhost/ManageStudents/Roles/validateField`, {
             method: 'POST',
             body: formData
         });

@@ -62,7 +62,51 @@ class UserModel extends CI_Model {
     }
 
     public function addUsers($data) {
-        $this->db->insert('users', $data);
+        // Check for duplicate email or phone before inserting
+    $this->db->where('email', $data['email']);
+    $this->db->or_where('phone', $data['phone']);
+    $query = $this->db->get('users');
+    
+    if ($query->num_rows() > 0) {
+        throw new Exception('Duplicate entry');
     }
     
+    // If no duplicates, proceed with insert
+    return $this->db->insert('users', $data);
+    }
+    
+    public function authenticate($email, $password) {
+        	
+    		$query = $this->db->get_where('users', array('email' => $email));
+    
+    		if($query->num_rows() == 1) {
+        		$user = $query->row();
+        		return $user->password === $password;
+    		}
+    
+    		return false;
+    	}
+
+        // Get user by Email
+    	public function getUserByEmail($email) {
+        $query = $this->db->get_where('users', array('email' => $email));
+        return $query->row();
+    }
+    
+    public function getRoleNameFromRoleId($roleId)
+    {
+        $this->db->select('role_name');
+        $this->db->from('roles');
+        $this->db->where('role_id', $roleId);
+        
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            $result = $query->row();
+            return $result->role_name;
+        }
+        
+        return false;
+    }
+
 }
