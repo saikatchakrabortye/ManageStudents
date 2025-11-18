@@ -65,6 +65,30 @@ class Roles extends CI_Controller {
     public function addRole() {
         header('Content-Type: application/json');
         
+        // Validate fields and check result
+        /*if (!$this->validateAllFields($this->input->post())) {
+            // Get validation errors
+            $errors = $this->form_validation->error_array();
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Validation failed', 
+                'errors' => $errors
+            ]);
+            return;
+        }*/
+            if (!$this->validateAllFields($this->input->post())) {
+            $errors = $this->form_validation->error_array();
+            
+            // Combine all errors into one message
+            $errorMessages = implode(', ', $errors);
+            
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Validation failed: ' . $errorMessages,
+                'errors' => $errors
+            ]);
+            return;
+        }
 
         $data = [
             'role_name' => $this->input->post('roleName'),
@@ -129,15 +153,18 @@ class Roles extends CI_Controller {
         
         foreach ($post_data as $field => $value) {
             $rules = [
-                'name' => 'required|min_length[8]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]',
-                'email' => 'required|valid_email|max_length[100]',
-                'phone' => 'required|regex_match[/^\+?[1-9]\d{1,14}$/]|min_length[10]|max_length[10]',
-                'address' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]',
-                'city' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\-]+$/]',
-                //'password' => ($is_edit ? 'min_length[8]' : 'required|min_length[8]') . '|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
-                //'confirm_password' => 'matches[password]',
-                'status' => 'required|in_list[active,alumni,inactive]'
-            ];
+            'name' => 'required|min_length[8]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]',
+            'roleName' => 'required|min_length[2]|max_length[30]|regex_match[/^[a-zA-Z\s]+$/]',
+            'email' => 'required|valid_email|max_length[100]',
+            'phone' => 'required|regex_match[/^\+?[1-9]\d{1,14}$/]|min_length[10]|max_length[10]',
+            'address' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]',
+            'description' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]',
+            'city' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\-]+$/]',
+            //'profile_pic' => 'uploaded[profile_pic]|max_size[profile_pic,5120]|is_image[profile_pic]|mime_in[profile_pic,image/jpeg,image/png,image/gif,image/webp]|ext_in[profile_pic,jpg,jpeg,png,gif,webp]',
+            //'password' => 'min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
+            //'confirm_password' => 'matches[password]',
+            'status' => 'required|in_list[active,alumni,inactive]'
+        ];
             
             if (isset($rules[$field])) {
                 $this->form_validation->set_data([$field => $value]);

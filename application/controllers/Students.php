@@ -65,6 +65,31 @@ class Students extends CI_Controller {
     public function addStudent() {
         header('Content-Type: application/json');
         
+        // Validate fields and check result
+        /*if (!$this->validateAllFields($this->input->post())) {
+            // Get validation errors
+            $errors = $this->form_validation->error_array();
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Validation failed', 
+                'errors' => $errors
+            ]);
+            return;
+        }*/
+            if (!$this->validateAllFields($this->input->post())) {
+            $errors = $this->form_validation->error_array();
+            
+            // Combine all errors into one message
+            $errorMessages = implode(', ', $errors);
+            
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Validation failed: ' . $errorMessages,
+                'errors' => $errors
+            ]);
+            return;
+        }
+
         $profilePicFilename = $this->uploadFile();
 
         $data = [

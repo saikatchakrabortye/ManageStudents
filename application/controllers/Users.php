@@ -1,18 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Users extends CI_Controller {
+class Users extends MY_Controller {
 
     public function __construct() {
         parent::__construct();
-
-        $this->load->library('session');
-        $this->load->helper('url');
-        $this->load->library('form_validation');
-        // Check auth for ALL methods in this controller
-        if (!$this->session->userdata('loggedIn') || !$this->session->userdata('userId')) {
-            redirect('Login');
-        }
 
         $this->load->model('UserModel');
     }
@@ -69,23 +61,49 @@ class Users extends CI_Controller {
     public function addUser() {
         header('Content-Type: application/json');
         
-        $profilePicFilename = $this->uploadFile();
+        //Using Centralized Validation Function
+        $validation = $this->validate('addUser');
+        if (isset($validation['error'])) {
+            // Handle error
+            // Combine all errors into one message
+            $errorMessages = implode(', ', $validation['error']);
+            
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Validation failed: ' . $errorMessages,
+                'errors' => $validation['error']
+            ]);
+            return;
+        }
+
+        //$profilePicFilename = $this->uploadFile();
+        $fileValidation = $this->validateFile('profile_pic');
+        if (isset($fileValidation['success'])) {
+            $upload_path = FCPATH . 'uploads/profile_pics/users/';
+            $file_path = $upload_path . $fileValidation['safe_filename']; // Use safe filename
+            if ($this->compressAndSaveImage(
+                $fileValidation['file_data']['tmp_name'],
+                $fileValidation['mime_type'],
+                $file_path
+            )) {
+                $profilePicFilename = $fileValidation['safe_filename'];
+            }
+        }
 
         $data = [
-            'name' => $this->input->post('name'),
-            'email' => $this->input->post('email'),
-            'phone' => $this->input->post('phone'),
-            'address' => $this->input->post('address'),
-            'city' => $this->input->post('city'),
-            'dob' => $this->input->post('dob'),
-            'password' => $this->input->post('password'),
+            //'name' => $this->input->post('name'),
+            'name' => $validation['data']['name'], // Using validated data from $validation['data']; now raw user input
+            'email' => $validation['data']['email'],
+            'phone' => $validation['data']['phone'],
+            'address' => $validation['data']['address'],
+            'city' => $validation['data']['city'],
+            'dob' => $validation['data']['dob'],
+            'password' => password_hash($validation['data']['password'], PASSWORD_DEFAULT), // Hash password!
             'status' => 'active',
-            'role_id' => $this->input->post('roleId')
+            'role_id' => $validation['data']['roleId'],
+            'profile_pic' => $profilePicFilename ?? null // Use null if no file uploaded/processed
         ];
-        // Add profile pic only if file was uploaded
-        if ($profilePicFilename) {
-            $data['profile_pic'] = $profilePicFilename;
-        }
+        
 
         try {
         $this->UserModel->addUsers($data);
@@ -100,24 +118,6 @@ class Users extends CI_Controller {
     }
     }
 
-    public function uploadFile() {
-    // Check if profile_pic file is received
-        if (empty($_FILES['profile_pic']['name']) || $_FILES['profile_pic']['error'] !== UPLOAD_ERR_OK) {
-            return null;
-        }
-        // Upload profile picture
-        $base_dir = getcwd() . '/uploads/';
-        $upload_path = $base_dir . 'profile_pics/users/';
-        $file_extension = pathinfo($_FILES['profile_pic']['name'], PATHINFO_EXTENSION);
-        $profile_filename = uniqid() . '.' . $file_extension;
-        $profile_file_path = $upload_path . $profile_filename;
-
-        if (!move_uploaded_file($_FILES['profile_pic']['tmp_name'], $profile_file_path)) {
-            return null;
-        }
-        return $profile_filename;
-    }
-    
     public function getRoles() {
         header('Content-Type: application/json');
         
@@ -150,68 +150,55 @@ class Users extends CI_Controller {
     }
 
     public function validateField() {
-        $field = $this->input->post('field');
-        $value = $this->input->post('value');
+        // Use centralized validation rules instead of hardcoding
+        $this->config->load('validationRules', TRUE);
+        $rules = $this->config->item('addUser', 'validationRules');
         
-        $rules = [
-            'name' => 'required|min_length[8]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]',
-            'email' => 'required|valid_email|max_length[100]',
-            'phone' => 'required|regex_match[/^\+?[1-9]\d{1,14}$/]|min_length[10]|max_length[10]',
-            'address' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]',
-            'city' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\-]+$/]',
-            //'profile_pic' => 'uploaded[profile_pic]|max_size[profile_pic,5120]|is_image[profile_pic]|mime_in[profile_pic,image/jpeg,image/png,image/gif,image/webp]|ext_in[profile_pic,jpg,jpeg,png,gif,webp]',
-            //'password' => 'min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
-            //'confirm_password' => 'matches[password]',
-            'status' => 'required|in_list[active,alumni,inactive]'
-        ];
-        
-        $this->form_validation->reset_validation();
-        $this->form_validation->set_data([$field => $value]);
-        
-        if (isset($rules[$field])) {
-            $this->form_validation->set_rules($field, $field, $rules[$field]);
-        }
-        
-        if ($this->form_validation->run()) {
-            echo json_encode([
-                'success' => true,
-                'message' => 'Valid!'
-            ]);
-        } else {
-            $error_message = form_error($field);
-            echo json_encode([
-                'success' => false,
-                'message' => $error_message
-            ]);
-        }
+    if (!$rules || !isset($rules[$field])) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Validation rule not found'
+        ]);
+        return;
     }
+    
+    $fieldRule = $rules[$field];
+    
+    $this->form_validation->reset_validation();
+    $this->form_validation->set_data([$field => $value]);
+    $this->form_validation->set_rules($field, $fieldRule['label'], $fieldRule['rules']);
+    
+    if ($this->form_validation->run()) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Valid!'
+        ]);
+    } else {
+        $error_message = form_error($field);
+        // Clean the error message properly
+        $clean_error = strip_tags($error_message);
+        echo json_encode([
+            'success' => false,
+            'message' => $clean_error
+        ]);
+    }
+    }
+    /*public function uploadFile() {
+    // Check if profile_pic file is received
+        if (empty($_FILES['profile_pic']['name']) || $_FILES['profile_pic']['error'] !== UPLOAD_ERR_OK) {
+            return null;
+        }
+        // Upload profile picture
+        $base_dir = getcwd() . '/uploads/';
+        $upload_path = $base_dir . 'profile_pics/users/';
+        $file_extension = pathinfo($_FILES['profile_pic']['name'], PATHINFO_EXTENSION);
+        $profile_filename = uniqid() . '.' . $file_extension;
+        $profile_file_path = $upload_path . $profile_filename;
 
-    private function validateAllFields($post_data, $is_edit = false) {
-        $all_valid = true;
-        $this->form_validation->reset_validation();
-        
-        foreach ($post_data as $field => $value) {
-            $rules = [
-                'name' => 'required|min_length[8]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]',
-                'email' => 'required|valid_email|max_length[100]',
-                'phone' => 'required|regex_match[/^\+?[1-9]\d{1,14}$/]|min_length[10]|max_length[10]',
-                'address' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]',
-                'city' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\-]+$/]',
-                //'password' => ($is_edit ? 'min_length[8]' : 'required|min_length[8]') . '|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
-                //'confirm_password' => 'matches[password]',
-                'status' => 'required|in_list[active,alumni,inactive]'
-            ];
-            
-            if (isset($rules[$field])) {
-                $this->form_validation->set_data([$field => $value]);
-                $this->form_validation->set_rules($field, $field, $rules[$field]);
-                
-                if (!$this->form_validation->run()) {
-                    $all_valid = false;
-                }
-            }
+        if (!move_uploaded_file($_FILES['profile_pic']['tmp_name'], $profile_file_path)) {
+            return null;
         }
-        
-        return $all_valid;
-    }
+        return $profile_filename;
+    }*/
+    
 }
