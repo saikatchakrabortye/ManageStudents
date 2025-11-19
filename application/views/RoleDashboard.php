@@ -281,6 +281,7 @@
                 
                 
                 <button type="submit" class="submit-btn">Add Role</button>
+                <div id="form-error-container"></div>
             </form>
         </div>
     </div>
@@ -440,14 +441,21 @@
         });
         
         const result = await response.json();
-        alert(result.message);
-        
-        if (result.success) {
-            // Redirect to student list after 1 second
-            setTimeout(() => {
-                window.location.href = `http://localhost/ManageStudents/Roles`;
-            }, 1000);
-        }
+        const cleanMessage = result.message.replace(/<p>|<\/p>/g, '').trim();
+        const errorContainer = document.getElementById('form-error-container');
+        // Remove existing error
+        errorContainer.innerHTML = '';
+
+        if (!result.success) {
+            errorContainer.innerHTML = `<div class="error-message-onsubmit" style="color: red; font-size: 0.875rem; margin-top: 0.25rem;">${cleanMessage}</div>`;
+        } else {
+            // Success case - close modal and reload page
+            const modal = document.getElementById('userModal');
+            modal.style.display = 'none';
+            
+            // Reload the page to refresh the table
+            window.location.reload();
+            }
         } catch (error) {
             alert('Request failed: ' + error.message);
         }

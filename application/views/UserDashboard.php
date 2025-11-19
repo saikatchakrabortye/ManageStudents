@@ -298,10 +298,10 @@
                 <div class="form-group">
                     <!--<input type="text" name="city" class="form-input" placeholder="">-->
                     <!-- ************** For City Dropdown with Search ***************** *-->
-                    <input type="text" id="cityInput" name="city" placeholder="" class="form-input" data-validation>
+                    <input type="text" id="cityInput" name="city" placeholder="" class="form-input" readonly>
                     <label class="form-label">City</label>
                     <div id="cityDropdown" class="dropdown">
-                        <input type="text" id="citySearch" placeholder="Search cities..." class="form-input">
+                        <input type="text" id="citySearch" placeholder="Search cities..." class="form-input" data-validation>
                         <div id="cityResults"></div>
                     </div>
                     <!--City dropdown with search container ends here-->
@@ -625,7 +625,7 @@
             formData.append('value', this.value);
         }
 
-        const response = await fetch(`http://localhost/ManageStudents/Students/validateField`, {
+        const response = await fetch(`http://localhost/ManageStudents/Users/validateField`, {
             method: 'POST',
             body: formData
         });

@@ -10,7 +10,7 @@ $config['addUser'] = [
     [
         'field' => 'name',
         'label' => 'Full Name',
-        'rules' => 'required|min_length[8]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]'
+        'rules' => 'required|min_length[6]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]'
     ],
     [
         'field' => 'email',
@@ -40,7 +40,11 @@ $config['addUser'] = [
     [
         'field' => 'password',
         'label' => 'Password',
-        'rules' => 'required|min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]'
+        'rules' => 'required|min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
+        /**The errors array allow us to set custom validation messages */
+        'errors' => [
+        'regex_match' => 'Password should contain at least 1 Capital Letter, Small Letter, Number, and Special Characters like @$!%*?&'
+    ]
     ]
 ];
 
@@ -53,7 +57,7 @@ $config['editUser'] = [
     [
         'field' => 'name',
         'label' => 'Full Name',
-        'rules' => 'required|min_length[8]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]'
+        'rules' => 'required|min_length[6]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]'
     ],
     [
         'field' => 'email',
@@ -83,7 +87,10 @@ $config['editUser'] = [
     [
         'field' => 'password',
         'label' => 'Password',
-        'rules' => 'min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]'
+        'rules' => 'min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
+        'errors' => [
+        'regex_match' => 'Password should contain at least 1 Capital Letter, Small Letter, Number, and Special Characters like @$!%*?&'
+    ]
     ],
     [
         'field' => 'status',
@@ -96,7 +103,7 @@ $config['addStudent'] = [
     [
         'field' => 'name',
         'label' => 'Full Name',
-        'rules' => 'required|min_length[8]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]'
+        'rules' => 'required|min_length[6]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]'
     ],
     [
         'field' => 'email',
@@ -126,7 +133,10 @@ $config['addStudent'] = [
     [
         'field' => 'password',
         'label' => 'Password',
-        'rules' => 'required|min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]'
+        'rules' => 'required|min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
+        'errors' => [
+        'regex_match' => 'Password should contain at least 1 Capital Letter, Small Letter, Number, and Special Characters like @$!%*?&'
+    ]
     ]
 ];
 
@@ -134,7 +144,7 @@ $config['editStudent'] = [
     [
         'field' => 'name',
         'label' => 'Full Name',
-        'rules' => 'required|min_length[8]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]'
+        'rules' => 'required|min_length[6]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]'
     ],
     [
         'field' => 'email',
@@ -164,7 +174,10 @@ $config['editStudent'] = [
     [
         'field' => 'password',
         'label' => 'Password',
-        'rules' => 'required|min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]'
+        'rules' => 'required|min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
+        'errors' => [
+        'regex_match' => 'Password should contain at least 1 Capital Letter, Small Letter, Number, and Special Characters like @$!%*?&'
+    ]
     ],
     [
         'field' => 'status',

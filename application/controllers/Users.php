@@ -98,7 +98,7 @@ class Users extends MY_Controller {
             'address' => $validation['data']['address'],
             'city' => $validation['data']['city'],
             'dob' => $validation['data']['dob'],
-            'password' => password_hash($validation['data']['password'], PASSWORD_DEFAULT), // Hash password!
+            'password' => $validation['data']['password'], 
             'status' => 'active',
             'role_id' => $validation['data']['roleId'],
             'profile_pic' => $profilePicFilename ?? null // Use null if no file uploaded/processed
@@ -150,11 +150,17 @@ class Users extends MY_Controller {
     }
 
     public function validateField() {
+        header('Content-Type: application/json');
+        $field = $this->input->post('field');
+        $value = $this->input->post('value');
+
         // Use centralized validation rules instead of hardcoding
         $this->config->load('validationRules', TRUE);
         $rules = $this->config->item('addUser', 'validationRules');
         
-    if (!$rules || !isset($rules[$field])) {
+        $rulesAssoc = array_column($rules, null, 'field');
+
+    if (!isset($rulesAssoc[$field])) {
         echo json_encode([
             'success' => false,
             'message' => 'Validation rule not found'
@@ -162,10 +168,18 @@ class Users extends MY_Controller {
         return;
     }
     
-    $fieldRule = $rules[$field];
+    $fieldRule = $rulesAssoc[$field];
     
     $this->form_validation->reset_validation();
     $this->form_validation->set_data([$field => $value]);
+
+    // Set custom error messages if they exist
+    /*if (isset($fieldRule['errors'])) {
+        foreach ($fieldRule['errors'] as $rule => $message) {
+            $this->form_validation->set_message($rule, $message);
+        }
+    }*/
+
     $this->form_validation->set_rules($field, $fieldRule['label'], $fieldRule['rules']);
     
     if ($this->form_validation->run()) {

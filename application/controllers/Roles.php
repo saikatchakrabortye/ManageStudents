@@ -1,19 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Roles extends CI_Controller {
+class Roles extends MY_Controller {
 
     public function __construct() {
         parent::__construct();
-
-        $this->load->library('session');
-        $this->load->helper('url');
-        $this->load->library('form_validation');
-        // Check auth for ALL methods in this controller
-        if (!$this->session->userdata('loggedIn') || !$this->session->userdata('userId')) {
-            redirect('Login');
-        }
-
         $this->load->model('RoleModel');
     }
 
@@ -65,34 +56,24 @@ class Roles extends CI_Controller {
     public function addRole() {
         header('Content-Type: application/json');
         
-        // Validate fields and check result
-        /*if (!$this->validateAllFields($this->input->post())) {
-            // Get validation errors
-            $errors = $this->form_validation->error_array();
-            echo json_encode([
-                'success' => false, 
-                'message' => 'Validation failed', 
-                'errors' => $errors
-            ]);
-            return;
-        }*/
-            if (!$this->validateAllFields($this->input->post())) {
-            $errors = $this->form_validation->error_array();
-            
+        //Using Centralized Validation Function
+        $validation = $this->validate('addRole');
+        if (isset($validation['error'])) {
+            // Handle error
             // Combine all errors into one message
-            $errorMessages = implode(', ', $errors);
+            $errorMessages = implode(', ', $validation['error']);
             
             echo json_encode([
                 'success' => false, 
                 'message' => 'Validation failed: ' . $errorMessages,
-                'errors' => $errors
+                'errors' => $validation['error']
             ]);
             return;
         }
 
         $data = [
-            'role_name' => $this->input->post('roleName'),
-            'description' => $this->input->post('description')
+            'role_name' => $validation['data']['roleName'],
+            'description' => $validation['data']['description']
         ];
         
         try {
@@ -109,29 +90,37 @@ class Roles extends CI_Controller {
     }
 
     public function validateField() {
+        header('Content-Type: application/json');
         $field = $this->input->post('field');
         $value = $this->input->post('value');
+
+        // Use centralized validation rules instead of hardcoding
+        $this->config->load('validationRules', TRUE);
+        $rules = $this->config->item('addRole', 'validationRules');
         
-        $rules = [
-            'name' => 'required|min_length[8]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]',
-            'roleName' => 'required|min_length[2]|max_length[30]|regex_match[/^[a-zA-Z\s]+$/]',
-            'email' => 'required|valid_email|max_length[100]',
-            'phone' => 'required|regex_match[/^\+?[1-9]\d{1,14}$/]|min_length[10]|max_length[10]',
-            'address' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]',
-            'description' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]',
-            'city' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\-]+$/]',
-            //'profile_pic' => 'uploaded[profile_pic]|max_size[profile_pic,5120]|is_image[profile_pic]|mime_in[profile_pic,image/jpeg,image/png,image/gif,image/webp]|ext_in[profile_pic,jpg,jpeg,png,gif,webp]',
-            //'password' => 'min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
-            //'confirm_password' => 'matches[password]',
-            'status' => 'required|in_list[active,alumni,inactive]'
-        ];
+        $rulesAssoc = array_column($rules, null, 'field');
+
+        if (!isset($rulesAssoc[$field])) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Validation rule not found'
+            ]);
+            return;
+        }
+        
+        $fieldRule = $rulesAssoc[$field];
         
         $this->form_validation->reset_validation();
         $this->form_validation->set_data([$field => $value]);
-        
-        if (isset($rules[$field])) {
-            $this->form_validation->set_rules($field, $field, $rules[$field]);
+
+        // Set custom error messages if they exist
+    if (isset($fieldRule['errors'])) {
+        foreach ($fieldRule['errors'] as $rule => $message) {
+            $this->form_validation->set_message($rule, $message);
         }
+    }
+        
+        $this->form_validation->set_rules($field, $fieldRule['label'], $fieldRule['rules']);
         
         if ($this->form_validation->run()) {
             echo json_encode([
@@ -140,42 +129,13 @@ class Roles extends CI_Controller {
             ]);
         } else {
             $error_message = form_error($field);
+            $clean_error = strip_tags($error_message);
             echo json_encode([
                 'success' => false,
-                'message' => $error_message
+                'message' => $clean_error
             ]);
         }
     }
 
-    private function validateAllFields($post_data, $is_edit = false) {
-        $all_valid = true;
-        $this->form_validation->reset_validation();
-        
-        foreach ($post_data as $field => $value) {
-            $rules = [
-            'name' => 'required|min_length[8]|max_length[30]|regex_match[/^[a-zA-Z]+( [a-zA-Z]+)*$/]',
-            'roleName' => 'required|min_length[2]|max_length[30]|regex_match[/^[a-zA-Z\s]+$/]',
-            'email' => 'required|valid_email|max_length[100]',
-            'phone' => 'required|regex_match[/^\+?[1-9]\d{1,14}$/]|min_length[10]|max_length[10]',
-            'address' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]',
-            'description' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]',
-            'city' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\-]+$/]',
-            //'profile_pic' => 'uploaded[profile_pic]|max_size[profile_pic,5120]|is_image[profile_pic]|mime_in[profile_pic,image/jpeg,image/png,image/gif,image/webp]|ext_in[profile_pic,jpg,jpeg,png,gif,webp]',
-            //'password' => 'min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
-            //'confirm_password' => 'matches[password]',
-            'status' => 'required|in_list[active,alumni,inactive]'
-        ];
-            
-            if (isset($rules[$field])) {
-                $this->form_validation->set_data([$field => $value]);
-                $this->form_validation->set_rules($field, $field, $rules[$field]);
-                
-                if (!$this->form_validation->run()) {
-                    $all_valid = false;
-                }
-            }
-        }
-        
-        return $all_valid;
-    }
+    
 }

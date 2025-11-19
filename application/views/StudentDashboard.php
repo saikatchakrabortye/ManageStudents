@@ -291,10 +291,10 @@
                 <div class="form-group">
                     <!--<input type="text" name="city" class="form-input" placeholder="">-->
                     <!-- ************** For City Dropdown with Search ***************** *-->
-                    <input type="text" id="cityInput" name="city" placeholder="" class="form-input" readonly data-validation>
+                    <input type="text" id="cityInput" name="city" placeholder="" class="form-input" readonly>
                     <label class="form-label">City</label>
                     <div id="cityDropdown" class="dropdown">
-                        <input type="text" id="citySearch" placeholder="Search cities..." class="form-input">
+                        <input type="text" id="citySearch" placeholder="Search cities..." class="form-input" data-validation>
                         <div id="cityResults"></div>
                     </div>
                     <!--City dropdown with search container ends here-->
@@ -314,6 +314,7 @@
                 </div>
                 
                 <button type="submit" class="submit-btn">Enroll Student</button>
+                <div id="form-error-container"></div>
             </form>
         </div>
     </div>
@@ -522,14 +523,21 @@
         });
         
         const result = await response.json();
-        alert(result.message);
-        
-        if (result.success) {
-            // Redirect to student list after 1 second
-            setTimeout(() => {
-                window.location.href = `http://localhost/ManageStudents/Students`;
-            }, 1000);
-        }
+        const cleanMessage = result.message.replace(/<p>|<\/p>/g, '').trim();
+        const errorContainer = document.getElementById('form-error-container');
+        // Remove existing error
+        errorContainer.innerHTML = '';
+
+        if (!result.success) {
+            errorContainer.innerHTML = `<div class="error-message-onsubmit" style="color: red; font-size: 0.875rem; margin-top: 0.25rem;">${cleanMessage}</div>`;
+        } else {
+            // Success case - close modal and reload page
+            const modal = document.getElementById('userModal');
+            modal.style.display = 'none';
+            
+            // Reload the page to refresh the table
+            window.location.reload();
+            }
         } catch (error) {
             alert('Request failed: ' + error.message);
         }
@@ -556,9 +564,6 @@
         
         const result = await response.json();
                 
-        
-        
-        
         const cleanMessage = result.message.replace(/<p>|<\/p>/g, '').trim();
         
         // Remove existing error message if validation passed
@@ -576,7 +581,7 @@
             errorDiv.textContent = cleanMessage;
             this.parentNode.appendChild(errorDiv);
         }
-        
+       
         
     });
 });
