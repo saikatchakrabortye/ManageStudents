@@ -532,7 +532,7 @@
             errorContainer.innerHTML = `<div class="error-message-onsubmit" style="color: red; font-size: 0.875rem; margin-top: 0.25rem;">${cleanMessage}</div>`;
         } else {
             // Success case - close modal and reload page
-            const modal = document.getElementById('userModal');
+            const modal = document.getElementById('studentModal');
             modal.style.display = 'none';
             
             // Reload the page to refresh the table

@@ -54,7 +54,7 @@ class StudentModel extends CI_Model {
 
     public function addStudent($data) {
 
-        // Check for duplicate email or phone before inserting
+    // Check for duplicate email or phone before inserting
     $this->db->where('email', $data['email']);
     $this->db->or_where('phone', $data['phone']);
     $query = $this->db->get('students');
@@ -66,5 +66,31 @@ class StudentModel extends CI_Model {
     // If no duplicates, proceed with insert
     return $this->db->insert('students', $data);
     }
+
+    public function getStudentById($id) {
+    return $this->db->where('id', $id)->get('students')->row();
+    }
+
+    public function updateStudent($id, $data) {
+        // Check for duplicate email or phone excluding current student
+        $this->db->where('id !=', $id);
+        $this->db->group_start();
+        $this->db->where('email', $data['email']);
+        $this->db->or_where('phone', $data['phone']);
+        $this->db->group_end();
+        $query = $this->db->get('students');
+        
+        if ($query->num_rows() > 0) {
+            throw new Exception('Duplicate entry');
+        }
+        
+        // If no duplicates, proceed with update
+        return $this->db->where('id', $id)->update('students', $data);
+    }
+
+    public function deleteStudent($id) {
+        return $this->db->where('id', $id)->delete('students');
+    }
+
     }    
 
