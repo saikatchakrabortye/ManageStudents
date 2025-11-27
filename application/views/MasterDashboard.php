@@ -30,6 +30,7 @@
             <a href="http://localhost/ManageStudents/Students" target="contentFrame" class="active">Students</a>
             <a href="http://localhost/ManageStudents/Users" target="contentFrame">Users</a>
             <a href="http://localhost/ManageStudents/Roles" target="contentFrame">Roles</a>
+            <a href="http://localhost/ManageStudents/Permissions" target="contentFrame">Permissions</a>
             <a href="#" class="logout-btn" id="logoutBtn">Logout</a>
         </div>
         <div class="main-content">

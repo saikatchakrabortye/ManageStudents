@@ -44,7 +44,7 @@ class UserModel extends CI_Model {
     }
 
     public function getCities() {
-        $this->db->select('name');
+        $this->db->select('id, name');
         $this->db->from('cities');
         $this->db->order_by('name', 'ASC');
         $query = $this->db->get();
@@ -53,9 +53,9 @@ class UserModel extends CI_Model {
     }
 
     public function getAllRoles() {
-        $this->db->select('role_id, role_name');
+        $this->db->select('id, name');
         $this->db->from('roles');
-        $this->db->order_by('role_name', 'ASC');
+        $this->db->order_by('name', 'ASC');
         $query = $this->db->get();
         
         return $query->result();
@@ -74,14 +74,29 @@ class UserModel extends CI_Model {
     // If no duplicates, proceed with insert
     return $this->db->insert('users', $data);
     }
+
+    public function updateUser($userId, $data) {
+        $this->db->where('id', $userId);
+        return $this->db->update('users', $data);
+    }
+
+    public function deactivateUser($userId, $status) {
+    $this->db->where('id', $userId);
+    return $this->db->update('users', [
+        'status' => $status,
+    ]);
+    }
     
     public function authenticate($email, $password) {
         	
     		$query = $this->db->get_where('users', array('email' => $email));
+
+            
     
     		if($query->num_rows() == 1) {
         		$user = $query->row();
-        		return $user->password === $password;
+        		//return $user->password === $password; // Use it for Plain text password comparison
+                return password_verify($password, $user->password); // Verify hashed password
     		}
     
     		return false;
@@ -95,18 +110,54 @@ class UserModel extends CI_Model {
     
     public function getRoleNameFromRoleId($roleId)
     {
-        $this->db->select('role_name');
+        $this->db->select('name');
         $this->db->from('roles');
-        $this->db->where('role_id', $roleId);
+        $this->db->where('id', $roleId);
         
         $query = $this->db->get();
         
         if ($query->num_rows() > 0) {
             $result = $query->row();
-            return $result->role_name;
+            return $result->name;
         }
         
         return false;
     }
 
+    public function getAllUsersDataWithRoleName() {
+        return $this->db->select('users.*, roles.name as roleName, cities.name as cityName')
+                    ->from('users')
+                    ->join('roles', 'users.roleId = roles.id')
+                    ->join('cities', 'users.cityId = cities.id')
+                    ->get()
+                    ->result();
+    }
+
+    public function getTotalUsersCount() {
+        $this->db->select('COUNT(*) as total');
+        $this->db->from('users');
+
+        $query = $this->db->get();
+        return $query->row()->total;
+    }    
+
+    public function getUsersForPage($currentPage, $recordsToShowPerPage)
+    {
+        $getTotalRecords = $this->getTotalUsersCount();
+        $totalPages = ceil($getTotalRecords / $recordsToShowPerPage);
+
+        
+        if ($currentPage >= 1 && $currentPage <= $totalPages) // Valid Current Page No Check
+        {
+            $this->db->select('users.*, roles.name as roleName, cities.name as cityName');
+            $this->db->from('users')
+            ->join('roles', 'users.roleId = roles.id')
+                    ->join('cities', 'users.cityId = cities.id');
+            
+            $offset = ($currentPage - 1) * $recordsToShowPerPage; // records to skip then star displaying
+            $this->db->limit($recordsToShowPerPage, $offset); 
+            return $this->db->get()->result();
+        }
+        return []; // return empty array if current page is invalid like ?page=9999
+    }
 }

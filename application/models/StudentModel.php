@@ -44,7 +44,7 @@ class StudentModel extends CI_Model {
     }
 
     public function getCities() {
-        $this->db->select('name');
+        $this->db->select('id, name');
         $this->db->from('cities');
         $this->db->order_by('name', 'ASC');
         $query = $this->db->get();
@@ -71,26 +71,68 @@ class StudentModel extends CI_Model {
     return $this->db->where('id', $id)->get('students')->row();
     }
 
-    public function updateStudent($id, $data) {
-        // Check for duplicate email or phone excluding current student
-        $this->db->where('id !=', $id);
-        $this->db->group_start();
-        $this->db->where('email', $data['email']);
-        $this->db->or_where('phone', $data['phone']);
-        $this->db->group_end();
-        $query = $this->db->get('students');
-        
-        if ($query->num_rows() > 0) {
-            throw new Exception('Duplicate entry');
+
+
+    public function updateStudent($studentId, $data) {
+        $this->db->where('id', $studentId);
+        return $this->db->update('students', $data);
+    }
+
+    public function deactivateStudent($studentId, $status) {
+    $this->db->where('id', $studentId);
+    return $this->db->update('students', [
+        'status' => $status,
+    ]);
+}
+
+    /**For learning */
+    public function getAllStudentsData() {
+        // If not admin (roleId != 1), filter by createdByUserId
+        if($this->session->userdata('roleId') != 1) {
+            $this->db->where('createdByUserId', $this->session->userdata('userId'));
         }
         
-        // If no duplicates, proceed with update
-        return $this->db->where('id', $id)->update('students', $data);
+        return $this->db->select('students.*, users.email as createdByEmail')
+                    ->from('students')
+                    ->join('users', 'students.createdByUserId = users.id')
+                    ->get()
+                    ->result();
     }
 
-    public function deleteStudent($id) {
-        return $this->db->where('id', $id)->delete('students');
-    }
+    public function getTotalStudentsCount() {
+        $this->db->select('COUNT(*) as total');
+        $this->db->from('students');
+        
 
+        // If not admin (roleId != 1), filter by createdByUserId
+        if($this->session->userdata('roleId') != 1) {
+            $this->db->where('createdByUserId', $this->session->userdata('userId'));
+        }
+
+        $query = $this->db->get();
+        return $query->row()->total;
     }    
 
+    public function getStudentsForPage($currentPage, $recordsToShowPerPage)
+    {
+        $getTotalRecords = $this->getTotalStudentsCount();
+        $totalPages = ceil($getTotalRecords / $recordsToShowPerPage);
+
+        
+        if ($currentPage >= 1 && $currentPage <= $totalPages) // Valid Current Page No Check
+        {
+            $this->db->select('students.*, users.email as createdByEmail, cities.name as cityName');
+            $this->db->from('students')
+            ->join('users', 'students.createdByUserId = users.id')
+            ->join('cities', 'students.cityId = cities.id');
+            // If not admin (roleId != 1), filter by createdByUserId
+            if($this->session->userdata('roleId') != 1) {
+                $this->db->where('createdByUserId', $this->session->userdata('userId'));
+            }
+            $offset = ($currentPage - 1) * $recordsToShowPerPage; // records to skip then star displaying
+            $this->db->limit($recordsToShowPerPage, $offset); 
+            return $this->db->get()->result();
+        }
+        return []; // return empty array if current page is invalid like ?page=9999
+    }
+}

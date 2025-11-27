@@ -8,7 +8,29 @@ class Students extends MY_Controller {
     }
 
     public function index() {
-        $this->load->view('StudentDashboard');
+
+        if(!checkPermission('student.dashboard')) {
+            die("No Permissions to Students dashboard");
+            /*$this->session->set_flashdata('error', 'No Permissions to Students dashboard');
+            redirect('Login'); // or redirect to previous page
+            return;*/
+        }
+        // Pagenation with search
+        // Get the inputs needed for pagenation
+        
+        $currentPage = $this->input->get('page') ?? 1; // if page exists in URL like /students?page=2 then get that value else default to page 1
+        $search = $this->input->get('search') ?? ''; // NEW: Get search term from URL
+        $recordsToShowPerPage = 5;
+        $data['students'] = $this->StudentModel->getStudentsForPage($currentPage, $recordsToShowPerPage, $search); // search parameter added
+        $data['currentPage'] = $currentPage; // we modify this currentPage variable to navigate through pages
+
+        $totalRecords = $this->StudentModel->getTotalStudentsCount($search); // search  parameter added
+        $totalPages = ceil($totalRecords / $recordsToShowPerPage);
+        $data['totalPages'] = $totalPages;
+        
+
+        //$data['students']=$this->StudentModel->getAllStudentsData();
+        $this->load->view('StudentDashboard', $data);
     }
 
    public function getStudents() {
@@ -90,11 +112,12 @@ class Students extends MY_Controller {
             'email' => $validation['data']['email'],
             'phone' => $validation['data']['phone'],
             'address' => $validation['data']['address'],
-            'city' => $validation['data']['city'],
+            'cityId' => $validation['data']['cityId'],
             'dob' => $validation['data']['dob'],
-            'password' => $validation['data']['password'], // Hash password!
+            'password' => password_hash($validation['data']['password'], PASSWORD_DEFAULT), // Hash password!
             'status' => 'active',
-            'profile_pic_id' => $profilePicFilename ?? null // Use null if no file uploaded/processed
+            'profilePic' => $profilePicFilename ?? null, // Use null if no file uploaded/processed
+            'createdByUserId' => $this->session->userdata('userId') // Assuming userId is stored in session upon login
         ];
 
         try {
@@ -109,6 +132,81 @@ class Students extends MY_Controller {
         }
     }
     }
+
+    public function updateStudent() {
+        header('Content-Type: application/json');
+         //Using Centralized Validation Function
+        $validation = $this->validate('editStudent');
+        if (isset($validation['error'])) {
+            // Handle error
+            // Combine all errors into one message
+            $errorMessages = implode(', ', $validation['error']);   
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Validation failed: ' . $errorMessages,
+                'errors' => $validation['error']
+            ]);
+            return;
+        }
+
+        $studentId = $this->input->post('studentId');
+        $data = [
+            'name' => $this->input->post('name'),
+            'email' => $this->input->post('email'),
+            'phone' => $this->input->post('phone'),
+            'address' => $this->input->post('address'),
+            'cityId' => $this->input->post('cityId'),
+            'dob' => $this->input->post('dob'),
+            'updatedByUserId' => $this->session->userdata('userId') // if you have user sessions
+        ];
+        
+        // Handle password update only if provided
+        if ($this->input->post('password')) {
+            $data['password'] = password_hash($this->input->post('password'), PASSWORD_DEFAULT);
+        }
+        
+        // Handle profile picture upload
+        /*if (!empty($_FILES['profile_pic']['name'])) {
+            
+            $fileValidation = $this->validateFile('profile_pic');
+            if (isset($fileValidation['success'])) {
+                $upload_path = FCPATH . 'uploads/profile_pics/students/';
+                $file_path = $upload_path . $fileValidation['safe_filename']; // Use safe filename
+                if ($this->compressAndSaveImage(
+                    $fileValidation['file_data']['tmp_name'],
+                    $fileValidation['mime_type'],
+                    $file_path
+                )) {
+                    $profilePicFilename = $fileValidation['safe_filename'];
+                }
+            }
+            $upload = $this->uploadProfilePic();
+            if ($profilePicFilename) {
+                $data['profilePic'] = $profilePicFilename ?? null;
+            }
+        }*/
+        
+        $result = $this->StudentModel->updateStudent($studentId, $data);
+        
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'Student updated successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update student']);
+        }
+    }
+
+    public function deactivateStudent() {
+            $studentId = $this->input->post('studentId');
+            $status = $this->input->post('status'); // 'active' or 'inactive'
+            $result = $this->StudentModel->deactivateStudent($studentId, $status);
+            
+            if ($result) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false]);
+            }
+        }
+
 
     public function validateField() {
 

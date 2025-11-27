@@ -11,13 +11,12 @@ class Login extends CI_Controller {
     }
     
     public function index() {
-        /*protected function checkLogin(){
-        /*If logged in, then no login again until signout done 
+        
+        //If logged in, then no login again until signout done 
         if($this->session->userdata('loggedIn')){
             redirect('Dashboard');
         }
-        }
-        $this->checkLogin(); */
+        
         $this->load->view('LoginView');
     }
     public function authenticate() {
@@ -26,18 +25,26 @@ class Login extends CI_Controller {
         $password = $this->input->post('password');
         
         if($this->UserModel->authenticate($email, $password)){
+            $user=$this->UserModel->getUserByEmail($email);
+            if($user->status === 'inactive'){
+        $this->session->set_flashdata('error', 'Your account is Blocked. Please contact support.');
+            	redirect('Login');
+            }
 		//set session data
-        $user=$this->UserModel->getUserByEmail($email);
+        
 		$session_data=array(
 		'email' => $user->email,
         'name' =>$user->name,
-        'profilePic'=>$user->profile_pic,
+        'profilePic'=>$user->profilePic,
 		'loggedIn' => TRUE,
-        'role'=>$this->UserModel->getRoleNameFromRoleId($user->role_id),
-        'userId'=>$user->role_id);
+        'role'=>$this->UserModel->getRoleNameFromRoleId($user->roleId),
+        'roleId'=>$user->roleId,
+        'userId'=>$user->id);
 	$this->session->set_userdata($session_data);
 	redirect('Dashboard');
-	} else{
+	} 
+       
+    else{
 		$this->session->set_flashdata('error', 'Invalid email or password');
             	redirect('Login');
 	}

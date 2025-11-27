@@ -9,6 +9,8 @@ class MY_Controller extends CI_Controller {
         $this->load->library('form_validation');
         $this->load->library('upload');
         $this->load->helper('url');
+        $this->load->helper('string'); // For getInitials helper function
+        $this->load->helper('permission'); // Load custom permission helper
         $this->checkLogin();
         
     }

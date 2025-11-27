@@ -9,9 +9,9 @@ class Dashboard extends CI_Controller {
         $this->load->library('session');
         $this->load->helper('url');
         // Check auth for ALL methods in this controller
-        if (!$this->session->userdata('loggedIn') || !$this->session->userdata('userId')) {
+        /*if (!$this->session->userdata('loggedIn') || !$this->session->userdata('userId')) {
             redirect('Login');
-        }
+        }*/
     }
     
     public function index() {

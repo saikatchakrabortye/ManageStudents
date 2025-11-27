@@ -10,11 +10,29 @@ class Users extends MY_Controller {
     }
 
     public function index() {
-        if($this->session->userdata('userId') && $this->session->userdata('role') === 'Admin'){
+        /*if($this->session->userdata('userId') && $this->session->userdata('role') === 'Admin'){
         $this->load->view('UserDashboard');}
         else{
             die("No Permissions");
-        }
+        }*/
+        
+
+        // Pagenation with search
+        // Get the inputs needed for pagenation
+        
+        $currentPage = $this->input->get('page') ?? 1; // if page exists in URL like /students?page=2 then get that value else default to page 1
+        //$search = $this->input->get('search') ?? ''; // NEW: Get search term from URL
+        $recordsToShowPerPage = 5;
+        $data['users'] = $this->UserModel->getUsersForPage($currentPage, $recordsToShowPerPage); // search parameter added
+        $data['currentPage'] = $currentPage; // we modify this currentPage variable to navigate through pages
+
+        $totalRecords = $this->UserModel->getTotalUsersCount(); // search  parameter added
+        $totalPages = ceil($totalRecords / $recordsToShowPerPage);
+        $data['totalPages'] = $totalPages;
+        
+
+        //$data['students']=$this->StudentModel->getAllStudentsData();
+        $this->load->view('UserDashboard', $data);
     }
 
    public function getUsers() {
@@ -89,19 +107,19 @@ class Users extends MY_Controller {
                 $profilePicFilename = $fileValidation['safe_filename'];
             }
         }
-
+        
         $data = [
             //'name' => $this->input->post('name'),
             'name' => $validation['data']['name'], // Using validated data from $validation['data']; now raw user input
             'email' => $validation['data']['email'],
             'phone' => $validation['data']['phone'],
             'address' => $validation['data']['address'],
-            'city' => $validation['data']['city'],
+            'cityId' => $validation['data']['cityId'],
             'dob' => $validation['data']['dob'],
-            'password' => $validation['data']['password'], 
+            'password' => password_hash($validation['data']['password'], PASSWORD_DEFAULT), // Hash password!
             'status' => 'active',
-            'role_id' => $validation['data']['roleId'],
-            'profile_pic' => $profilePicFilename ?? null // Use null if no file uploaded/processed
+            'roleId' => $validation['data']['roleId'],
+            'profilePic' => $profilePicFilename ?? null // Use null if no file uploaded/processed
         ];
         
 
@@ -117,6 +135,79 @@ class Users extends MY_Controller {
         }
     }
     }
+
+    public function updateUser() {
+        header('Content-Type: application/json');
+         //Using Centralized Validation Function
+        $validation = $this->validate('editUser');
+        if (isset($validation['error'])) {
+            // Handle error
+            // Combine all errors into one message
+            $errorMessages = implode(', ', $validation['error']);   
+            echo json_encode([
+                'success' => false, 
+                'message' => 'Validation failed: ' . $errorMessages,
+                'errors' => $validation['error']
+            ]);
+            return;
+        }
+
+        $userId = $this->input->post('userId');
+        $data = [
+            'name' => $this->input->post('name'),
+            'email' => $this->input->post('email'),
+            'phone' => $this->input->post('phone'),
+            'address' => $this->input->post('address'),
+            'cityId' => $this->input->post('cityId'),
+            'dob' => $this->input->post('dob')
+        ];
+        
+        // Handle password update only if provided
+        if ($this->input->post('password')) {
+            $data['password'] = password_hash($this->input->post('password'), PASSWORD_DEFAULT);
+        }
+        
+        // Handle profile picture upload
+        /*if (!empty($_FILES['profile_pic']['name'])) {
+            
+            $fileValidation = $this->validateFile('profile_pic');
+            if (isset($fileValidation['success'])) {
+                $upload_path = FCPATH . 'uploads/profile_pics/students/';
+                $file_path = $upload_path . $fileValidation['safe_filename']; // Use safe filename
+                if ($this->compressAndSaveImage(
+                    $fileValidation['file_data']['tmp_name'],
+                    $fileValidation['mime_type'],
+                    $file_path
+                )) {
+                    $profilePicFilename = $fileValidation['safe_filename'];
+                }
+            }
+            $upload = $this->uploadProfilePic();
+            if ($profilePicFilename) {
+                $data['profilePic'] = $profilePicFilename ?? null;
+            }
+        }*/
+        
+        $result = $this->UserModel->updateUser($userId, $data);
+        
+        if ($result) {
+            echo json_encode(['success' => true, 'message' => 'User updated successfully']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update user']);
+        }
+    }
+
+    public function deactivateUser() {
+            $userId = $this->input->post('userId');
+            $status = $this->input->post('status'); // 'active' or 'inactive'
+            $result = $this->UserModel->deactivateUser($userId, $status);
+            
+            if ($result) {
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false]);
+            }
+        }
 
     public function getRoles() {
         header('Content-Type: application/json');
@@ -140,7 +231,8 @@ class Users extends MY_Controller {
             'name' => $this->session->userdata('name'),
             'email' => $this->session->userdata('email'),
             'profilePic' => $this->session->userdata('profilePic'),
-            'role' => $this->session->userdata('role')
+            'role' => $this->session->userdata('role'),
+            'roleId' => $this->session->userdata('roleId')
         ]);
     }
 
@@ -174,11 +266,11 @@ class Users extends MY_Controller {
     $this->form_validation->set_data([$field => $value]);
 
     // Set custom error messages if they exist
-    /*if (isset($fieldRule['errors'])) {
+    if (isset($fieldRule['errors'])) {
         foreach ($fieldRule['errors'] as $rule => $message) {
             $this->form_validation->set_message($rule, $message);
         }
-    }*/
+    }
 
     $this->form_validation->set_rules($field, $fieldRule['label'], $fieldRule['rules']);
     

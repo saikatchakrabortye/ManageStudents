@@ -28,9 +28,9 @@ $config['addUser'] = [
         'rules' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]'
     ],
     [
-        'field' => 'city',
+        'field' => 'cityId',
         'label' => 'City',
-        'rules' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\-]+$/]'
+        'rules' => 'required'
     ],
     [
         'field' => 'dob',
@@ -75,9 +75,9 @@ $config['editUser'] = [
         'rules' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]'
     ],
     [
-        'field' => 'city',
+        'field' => 'cityId',
         'label' => 'City',
-        'rules' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\-]+$/]'
+        'rules' => 'required'
     ],
     [
         'field' => 'dob',
@@ -121,9 +121,9 @@ $config['addStudent'] = [
         'rules' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]'
     ],
     [
-        'field' => 'city',
+        'field' => 'cityId',
         'label' => 'City',
-        'rules' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\-]+$/]'
+        'rules' => 'required'
     ],
     [
         'field' => 'dob',
@@ -162,9 +162,9 @@ $config['editStudent'] = [
         'rules' => 'required|min_length[10]|max_length[255]|regex_match[/^[a-zA-Z0-9\s\-\.,#]+$/]'
     ],
     [
-        'field' => 'city',
+        'field' => 'cityId',
         'label' => 'City',
-        'rules' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\-]+$/]'
+        'rules' => 'required'
     ],
     [
         'field' => 'dob',

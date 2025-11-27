@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roles Dashboard</title>
+    <!-- STEP 1: Include REQUIRED CSS from DataTables CDN -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
     <style>
         /*Below style centers the table div and all others */
         body {
@@ -228,16 +230,59 @@
     <div style="padding: 2rem; text-align: center;">
         <h1>Roles Dashboard</h1>
         
-        <!-- NEW: Search input -->
-        <input type="text" id="searchInput" placeholder="Search by Role Name..." 
-        style="margin-bottom: 20px; padding: 10px; width: 300px; border: 1px solid #ddd; border-radius: 4px;">
-        <!--To show add form modal-->
+        
         <button id="addRoleModalBtn" class="submit-btn">Add Role</button> 
     </div>
 
-    <!-- ************************* Show Students Table ********************************************************* -->
+    <!--**********Show Roles Table using CI3 Listing Style using foreach loop ***************************** -->
+    <div class="table-container">    
+    <!--<table class="records-table">-->
+        <table id="studentsTable" class="display records-table">
+            <thead>
+                <tr>
+                    <th>Sl. No.</th>
+                    <th>Role Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php $recordsCounter=1; 
+                foreach($roles as $role): ?>
+                    <tr>
+                        <td><?php echo $recordsCounter; ?></td> <!-- getting data from role object; roles is collection of objects -->
+                        <td><?php echo $role->name; ?></td>
+                        <td><?php echo $role->description; ?></td>
+                        <td><?php echo $role->status; ?></td>
+                    </tr>
+                <?php $recordsCounter++; endforeach; ?>
+                <?php if(empty($roles)): ?>
+                    <tr>
+                        <td colspan="4">No roles found.</td>
+                    </tr>
+                <?php endif;?>
+            </tbody>
+
+        </table>
+         <!-- STEP 4: Include REQUIRED JavaScript Libraries -->
+    <!-- jQuery must be included FIRST -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <!-- Then the DataTables script -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+    <!-- STEP 5: The Magic - Initialize DataTable -->
+    <script>
+        $(document).ready(function() {
+            // Find the table by its ID and call .DataTable()
+            $('#studentsTable').DataTable();
+        });
+    </script>
+    </div>
+    <!--My Code for Listing using CI3 ends here-->
+
+    <!-- ************************* Show Roles Table ********************************************************* -->
     <!-- Table Container -->
-    <div class="table-container">
+    <!--<div class="table-container">
         <table id="studentsTable" class="records-table">
             <thead>
                 <tr>
@@ -249,14 +294,14 @@
             </thead>
             <tbody id="recordsBody"></tbody>
         </table>
-    </div>
+    </div>-->
     <!-- Table Container Ends Here -->
     <!-- ************************ Pagination Container **************** -->
-        <div class="pagination">
+        <!--<div class="pagination">
             <button id="prevBtn" class="page-btn">Previous</button>
             <span id="pageInfo" class="page-info">Page 1 of 1</span>
             <button id="nextBtn" class="page-btn">Next</button>
-        </div>
+        </div>-->
     <!-- Pagination Container Ends Here -->
 
     <!-- ************************* Show Students Table Ends Here ************************************************ -->
@@ -288,57 +333,6 @@
     <!-- ********************************** Add Student Modal Ends Here ************************************************ -->
 
     <!-- *********************************  View Student Modal **************************************************** -->
-<div class="modal" id="viewModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2><i class="fas fa-eye"></i> VIEW STUDENT</h2>
-            <button class="close-btn">&times;</button>
-        </div>
-        <div class="modal-body view-mode">
-            <div style="text-align: center; margin-bottom: 20px;">
-                <img id="viewProfilePic" src="" alt="Profile" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary);">
-            </div>
-            <div class="form-group">
-                <label for="viewName">Name</label>
-                <input type="text" id="viewName" class="form-control" readonly>
-            </div>
-            <div class="form-group">
-                <label for="viewEmail">Email</label>
-                <input type="text" id="viewEmail" class="form-control" readonly>
-            </div>
-            <div class="form-group">
-                <label for="viewPhone">Phone</label>
-                <input type="text" id="viewPhone" class="form-control" readonly>
-            </div>
-            <div class="form-group">
-                <label for="viewAddress">Address</label>
-                <textarea id="viewAddress" class="form-control" rows="3" readonly></textarea>
-            </div>
-            <div class="form-group">
-                <label for="viewCity">City</label>
-                <input type="text" id="viewCity" class="form-control" readonly>
-            </div>
-            <div class="form-group">
-                <label for="viewDob">Date of Birth</label>
-                <input type="text" id="viewDob" class="form-control" readonly>
-            </div>
-            <div class="form-group">
-                <label for="viewStatus">Status</label>
-                <input type="text" id="viewStatus" class="form-control" readonly>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <div class="action-buttons">
-                <button class="btn btn-danger" id="deleteStudentBtn">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-                <a href="#" class="btn btn-primary" id="editStudentBtn">
-                    <i class="fas fa-edit"></i> Edit
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
 <!-- View Student Modal Ends Here -->
 
 
@@ -357,6 +351,7 @@
         // Close modal
         closeModalBtn.addEventListener('click', function() {
             roleModal.style.display = 'none';
+            document.getElementById('roleForm').reset();
         });
         
         
@@ -370,30 +365,30 @@
         /*******Only the above code changes to below block******** */
 
         /******* Below Code is with applying pagenation Pagenation Step (1/3)******** */
-        let currentPage = 1;
+       /* let currentPage = 1;
         const itemsPerPage = 5; // Show 5 students per page
         async function loadStudents(page = 1) {
             const searchTerm = document.getElementById('searchInput').value; // Search Specific: Get search value
             const response = await fetch(`http://localhost/ManageStudents/Roles/getRoles?page=${page}&limit=${itemsPerPage}&search=${encodeURIComponent(searchTerm)}`); // Modified url by add &search=${encodeURIComponent(searchTerm)}` for search functionality
             const data = await response.json(); // Expect {students: [], total: 100}
-        /**Pagenation specific code ends here. Only after rendering students, we call updatePagenation() function as below */
+        //Pagenation specific code ends here. Only after rendering students, we call updatePagenation() function as below
 
             
             
             document.querySelector('#studentsTable tbody').innerHTML = 
             //students.map(s => `<tr><td>${s.id}</td> //when not using pagenation
-            data.roles.map(r => `<tr><td>${r.role_id}</td><td>${r.role_name}</td><td>${r.description}</td><td>${r.status}</td></tr>`).join('');
+            data.roles.map(r => `<tr><td>${r.id}</td><td>${r.name}</td><td>${r.description}</td><td>${r.status}</td></tr>`).join('');
 
             updatePagination(data.total, page); // Update pagination controls; Pagenation Step (2/3)
         }
-        /* ************************ Helper function to get initials from full name ******************** */
+        /* ************************ Helper function to get initials from full name ******************** 
         function getInitials(fullName) {
             return fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
         }
         /* ************************* End of Helper function ***************************** */
 
-        /**********************  Helper Function needed for Pagenation ************************** */
-        /**Front End of Pagenation only tracks current page and calculates offset */
+        /**********************  Helper Function needed for Pagenation **************************
+        /**Front End of Pagenation only tracks current page and calculates offset 
         function updatePagination(totalStudents, currentPage) {
             const totalPages = Math.ceil(totalStudents / itemsPerPage);
             const prevBtn = document.getElementById('prevBtn');
@@ -408,23 +403,23 @@
             prevBtn.onclick = () => currentPage > 1 && loadStudents(currentPage - 1);
             nextBtn.onclick = () => currentPage < totalPages && loadStudents(currentPage + 1);
         }
-        /********************** End of Helper Function needed for Pagenation ************************** */
+        /********************** End of Helper Function needed for Pagenation ************************** 
 
 
-        /* Search handler helper function*/
+        /* Search handler helper function
         function handleSearch() {
             currentPage = 1; // Reset to first page when searching
             loadStudents(1);
         }
-        /**Search Handler Helper Funtion ends here */
+        /**Search Handler Helper Funtion ends here
 
         // Call on page load, if not using pagenation
-        /*document.addEventListener('DOMContentLoaded', loadStudents);*/
+        /*document.addEventListener('DOMContentLoaded', loadStudents);
 
         // Initialize when page loads; use it when using pagenation, so start from page 1; Pagenation Step (3/3)
         document.addEventListener('DOMContentLoaded', () => loadStudents(1));
         // NEW: Add event listener for search input
-        document.getElementById('searchInput').addEventListener('input', handleSearch);
+        document.getElementById('searchInput').addEventListener('input', handleSearch);*/
 
         /************** Javascript code for Fetching Students data and loading in table ends here *********** */
 
@@ -450,7 +445,7 @@
             errorContainer.innerHTML = `<div class="error-message-onsubmit" style="color: red; font-size: 0.875rem; margin-top: 0.25rem;">${cleanMessage}</div>`;
         } else {
             // Success case - close modal and reload page
-            const modal = document.getElementById('userModal');
+            const modal = document.getElementById('roleModal');
             modal.style.display = 'none';
             
             // Reload the page to refresh the table

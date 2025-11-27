@@ -9,11 +9,14 @@ class Roles extends MY_Controller {
     }
 
     public function index() {
-        if($this->session->userdata('userId') && $this->session->userdata('role') === 'Admin'){
+        /*if($this->session->userdata('userId') && $this->session->userdata('role') === 'Admin'){
+
         $this->load->view('RoleDashboard');}
         else{
             die("No Permissions");
-        }
+        }*/
+        $data['roles']=$this->RoleModel->getAllRolesData();
+        $this->load->view('RoleDashboard', $data);
     }
 
    public function getRoles() {
@@ -72,7 +75,7 @@ class Roles extends MY_Controller {
         }
 
         $data = [
-            'role_name' => $validation['data']['roleName'],
+            'name' => $validation['data']['roleName'],
             'description' => $validation['data']['description']
         ];
         

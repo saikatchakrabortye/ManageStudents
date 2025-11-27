@@ -103,7 +103,7 @@
             
             <div class="form-group">
                     <input type="password" name="password" id="password" class="form-input" placeholder="" data-validation>
-                    <label class="form-label">Set Password</label>
+                    <label class="form-label">Enter Password</label>
                 </div>
             <button type="submit" class="submit-btn">Login</button>
             <!-- Add this div to show error message -->

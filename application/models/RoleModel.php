@@ -15,7 +15,7 @@ class RoleModel extends CI_Model {
         // NEW: Add search conditions if search term exists. Model Step (2/3)
         if (!empty($search)) {
             $this->db->group_start();
-            $this->db->like('role_name', $search);
+            $this->db->like('name', $search);
             $this->db->group_end();
         }
 
@@ -32,7 +32,7 @@ class RoleModel extends CI_Model {
         // NEW: Add same search conditions for count as used in getPagenatedStudents(). Model Step (3/3)
         if (!empty($search)) {
             $this->db->group_start();
-            $this->db->like('role_name', $search);
+            $this->db->like('name', $search);
             $this->db->group_end();
         }
         return $this->db->count_all('roles');
@@ -42,7 +42,7 @@ class RoleModel extends CI_Model {
     public function addRole($data) {
 
         // Check for duplicate email or phone before inserting
-    $this->db->where('role_name', $data['role_name']);
+    $this->db->where('name', $data['name']);
     $query = $this->db->get('roles');
     
     if ($query->num_rows() > 0) {
@@ -52,5 +52,10 @@ class RoleModel extends CI_Model {
     // If no duplicates, proceed with insert
     return $this->db->insert('roles', $data);
     }
+
+    /**For learning */
+    public function getAllRolesData() {
+        return $this->db->get('roles')->result();
     }    
+}
 
