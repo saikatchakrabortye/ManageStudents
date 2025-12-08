@@ -1,0 +1,264 @@
+/* =================== BUTTON STYLE ==================== */
+button {
+  padding: 10px 10px; /*Top, Right, Bottom, Left; When 2 attributes then it means top & bottom; right & left*/
+  margin: 2px;
+  border: none;
+  border-radius: 6px;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background: #0056b3;
+}
+/* =============== BUTTON STYLE END ================= */
+
+/* ========== DASHBOARD HEADER STYLE ========== */
+.dashboardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+}
+.dashboardHeader h1 {
+  margin: 0;
+}
+.buttonsGroup {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+/* ===== DASHBOARD HEADER STYLE END ====== */
+
+/* ========== MODAL FORM HEADER STYLE ========== */
+.formHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px;
+}
+.formHeader h1 {
+  margin: 0;
+}
+/* ===== MODAL FORM HEADER STYLE END ====== */
+
+/* ========== Table Container with DataTable Style ========== */
+.employeeTableContainer {
+  padding: 20px;
+}
+
+#employeeTable thead th {
+  background-color: #007bff;
+  color: white;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 2px solid #ddd;
+  border-top: 5px solid white;
+}
+/* ===== Table Container with DataTable Style END ====== */
+
+/* =============== Modal Styles ====================== */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 1000;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+}
+/* Modal content box - FIXED PADDING */
+.modalContent {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    box-sizing: border-box; /* This fixes boundary issues */
+    max-height: 600px;      /* Sets maximum height */
+    overflow-y: auto; /*Adds vertical scrollbar when needed*/
+    position: relative;
+}
+    
+.closeBtn {
+    float: right;
+    cursor: pointer;
+    font-size: 20px;
+}
+        
+/* ============= Modal Styles END =================== */
+
+/* ============ Form Inputs with Floating Labels ============ */
+/* Form group with floating labels */
+.formGroup {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+        
+/* Input fields - FIXED WIDTH */
+.formInput {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    background: transparent;
+    box-sizing: border-box; /* This prevents overflow */
+}
+        
+/* Floating labels */
+.formLabel {
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    color: #6c757d;
+    transition: all 0.3s;
+    pointer-events: none;
+    background: white;
+    padding: 0 0.25rem;
+}
+        
+/* When input is focused or has value */
+.formInput:focus
+/*,
+.formInput:not(:placeholder-shown)*/ {
+    border-color: #007bff;
+    outline: none;
+}
+        
+/* Move label up when focused or has value */
+.formInput:focus + .formLabel,
+.formInput:not(:placeholder-shown) + .formLabel {
+    top: -0.5rem;
+    font-size: 0.8rem;
+    color: #007bff;
+}
+/* ========== Form Inputs with Floating Labels END ========== */
+
+/** ========== Custom Dropdown with Search ========== */
+.dropdown {
+    display: none;
+    border: 1px solid #ccc;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.dropdownSearchInput {
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+.dropdownItem {
+    padding: 8px 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.dropdownItem:hover {
+    background-color: #f5f5f5;
+}
+/** ========== Custom Dropdown with Search END ========== */
+
+/* ========== Simple Card to display Static Info Inside Forms ========== */
+.info-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    border-left: 4px solid #007bff;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.info-card div {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.info-card div:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+/* ========== Simple Card to display Static Info Inside Forms END ========== */
+
+/* =========== Toggle Switch Input ========== */
+/**Style for toggle button */
+.switch-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+/* The switch - the box around the slider */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    flex-shrink: 0; /* Prevent switch from shrinking */
+}
+
+            /* Hide default HTML checkbox */
+            .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+            }
+
+            /* The slider */
+            .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+            }
+
+            .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+            }
+
+            input:checked + .slider {
+                background-color: green;
+                }
+
+                input:focus + .slider {
+                box-shadow: 0 0 1px green;
+                }
+
+                input:checked + .slider:before {
+                -webkit-transform: translateX(26px);
+                -ms-transform: translateX(26px);
+                transform: translateX(26px);
+                }
+
+                /* Rounded sliders */
+                .slider.round {
+                border-radius: 34px;
+                }
+
+                .slider.round:before {
+                border-radius: 50%;
+                }
+        /**Style for toggle button ends here */

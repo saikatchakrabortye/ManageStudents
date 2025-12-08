@@ -198,3 +198,105 @@ $config['addRole'] = [
         'rules' => 'required|min_length[10]|max_length[255]'
     ]
 ];
+
+$config['addEmployee'] = [
+    [
+        'field' => 'name',
+        'label' => 'Employee Name',
+        'rules' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\.]+$/]'
+    ],
+    [
+        'field' => 'gender',
+        'label' => 'Gender',
+        'rules' => 'required|in_list[M,F,TRANS,NTD]'
+    ],
+    [
+        'field' => 'dob',
+        'label' => 'Date of Birth',
+        'rules' => 'required'
+    ],
+    [
+        'field' => 'phone',
+        'label' => 'Phone Number',
+        'rules' => 'required|numeric|exact_length[10]|is_unique[employees.phone]'
+    ],
+    [
+        'field' => 'email',
+        'label' => 'Email Address',
+        'rules' => 'required|valid_email|max_length[50]|is_unique[employees.email]'
+    ],
+    [
+        'field' => 'joiningDate',
+        'label' => 'Date of Joining',
+        'rules' => 'required'
+    ],
+    [
+        'field' => 'designationId',
+        'label' => 'Designation',
+        'rules' => 'required|numeric'
+    ]
+];
+
+$config['updateEmployee'] = [
+    [
+        'field' => 'name',
+        'label' => 'Employee Name',
+        'rules' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\.]+$/]'
+    ],
+    [
+        'field' => 'gender',
+        'label' => 'Gender',
+        'rules' => 'required|in_list[M,F,TRANS,NTD]'
+    ],
+    [
+        'field' => 'dob',
+        'label' => 'Date of Birth',
+        'rules' => 'required'
+    ],
+    [
+        'field' => 'phone',
+        'label' => 'Phone Number',
+        'rules' => 'required|numeric|exact_length[10]' // Removed is_unique rules for phone and email - because during update, the existing record should be excluded from uniqueness checks
+    ],
+    [
+        'field' => 'email',
+        'label' => 'Email Address',
+        'rules' => 'required|valid_email|max_length[50]'
+    ],
+    [
+        'field' => 'joiningDate',
+        'label' => 'Date of Joining',
+        'rules' => 'required'
+    ],
+    [
+        'field' => 'designationId',
+        'label' => 'Designation',
+        'rules' => 'required|numeric'
+    ]
+];
+
+$config['addDesignation'] = [
+    [
+        'field' => 'name',
+        'label' => 'Designation Name',
+        'rules' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\0-9\-]+$/]|is_unique[designations.name]'
+    ]
+    /*[
+        'field' => 'status',
+        'label' => 'Status',
+        'rules' => 'required|in_list[active,inactive]'
+    ]*/
+];
+
+$config['updateDesignation'] = [
+    [
+        'field' => 'name',
+        'label' => 'Designation Name',
+        'rules' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\0-9\-]+$/]'
+    ],
+    [
+        'field' => 'status',
+        'label' => 'Status',
+        'rules' => 'required|in_list[active,inactive]'
+    ]
+];
