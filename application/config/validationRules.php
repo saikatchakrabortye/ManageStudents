@@ -234,6 +234,15 @@ $config['addEmployee'] = [
         'field' => 'designationId',
         'label' => 'Designation',
         'rules' => 'required|numeric'
+    ],
+    [
+        'field' => 'password',
+        'label' => 'Password',
+        'rules' => 'required|min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
+        /**The errors array allow us to set custom validation messages */
+        'errors' => [
+        'regex_match' => 'Password should contain at least 1 Capital Letter, Small Letter, Number, and Special Characters like @$!%*?&'
+    ]
     ]
 ];
 
@@ -272,6 +281,15 @@ $config['updateEmployee'] = [
         'field' => 'designationId',
         'label' => 'Designation',
         'rules' => 'required|numeric'
+    ],
+    [
+        'field' => 'password',
+        'label' => 'Password',
+        'rules' => 'required|min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
+        /**The errors array allow us to set custom validation messages */
+        'errors' => [
+        'regex_match' => 'Password should contain at least 1 Capital Letter, Small Letter, Number, and Special Characters like @$!%*?&'
+    ]
     ]
 ];
 
@@ -298,5 +316,49 @@ $config['updateDesignation'] = [
         'field' => 'status',
         'label' => 'Status',
         'rules' => 'required|in_list[active,inactive]'
+    ]
+];
+
+$config['addClient'] = [
+    [
+        'field' => 'name',
+        'label' => 'Client Name',
+        'rules' => 'required|min_length[2]|max_length[50]|regex_match[/^[a-zA-Z\s\.]+$/]'
+    ]
+];
+
+$config['addProject'] = [
+    [
+        'field' => 'name',
+        'label' => 'Project Name',
+        'rules' => 'required|min_length[2]|max_length[100]|regex_match[/^[a-zA-Z\s\.]+$/]'
+    ],
+    [
+        'field' => 'clientId',
+        'label' => 'Client ID',
+        'rules' => 'required'
+    ],
+    [
+        'field' => 'startDate',
+        'label' => 'Start Date',
+        'rules' => 'required'
+    ]
+];
+
+$config['updateProject'] = [
+    [
+        'field' => 'name',
+        'label' => 'Project Name',
+        'rules' => 'required|min_length[2]|max_length[100]|regex_match[/^[a-zA-Z\s\.]+$/]'
+    ],
+    [
+        'field' => 'clientId',
+        'label' => 'Client ID',
+        'rules' => 'required'
+    ],
+    [
+        'field' => 'startDate',
+        'label' => 'Start Date',
+        'rules' => 'required'
     ]
 ];

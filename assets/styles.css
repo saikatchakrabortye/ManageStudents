@@ -45,7 +45,7 @@ button:hover {
 /* ===== MODAL FORM HEADER STYLE END ====== */
 
 /* ========== Table Container with DataTable Style ========== */
-.employeeTableContainer {
+.tableContainer {
   padding: 20px;
 }
 
@@ -84,6 +84,8 @@ button:hover {
     overflow-y: auto; /*Adds vertical scrollbar when needed*/
     position: relative;
 }
+
+
     
 .closeBtn {
     float: right;
@@ -262,3 +264,170 @@ button:hover {
                 border-radius: 50%;
                 }
         /**Style for toggle button ends here */
+
+        /****** Success Modal Styles****** */
+        #successModal .modalContent {
+            text-align: center;
+            padding: 30px;
+        }
+
+        #successModal h2 {
+            color: green;
+            margin-bottom: 20px;
+        }
+
+        #successModal button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        /****** Success Modal Styles End ****** */
+        /*** Error Modal Styles ****/
+        #errorModal .modalContent {
+            text-align: center;
+            padding: 30px;
+        }
+
+        #errorModal h2 {
+            color: red;
+            margin-bottom: 20px;
+        }
+
+        #errorModal button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        /***** Error Modal Styles End *****/
+
+/* Sidebar Menu Container */
+.sidebar {
+    width: 250px;
+    background: #2c3e50;
+    color: white;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    transition: all 0.3s;
+}
+
+/* Dashboard Item */
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    color: white;
+    text-decoration: none;
+    border-bottom: 1px solid #34495e;
+    transition: background 0.3s;
+}
+
+.sidebar-item:hover, .sidebar-item.active {
+    background: #34495e;
+}
+
+.sidebar-item i {
+    width: 20px;
+    margin-right: 10px;
+    text-align: center;
+}
+
+/* Menu Groups */
+.menu-group {
+    border-bottom: 1px solid #34495e;
+}
+
+.group-header {
+    padding: 12px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background 0.3s;
+}
+
+.group-header:hover {
+    background: #34495e;
+}
+
+.group-header.active {
+    background: #1a252f;
+}
+
+.group-header .group-arrow {
+    margin-right: 10px;
+    font-size: 0.8em;
+    transition: transform 0.3s;
+}
+
+.group-title {
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 0.5px;
+}
+
+/* Submenu Items */
+.submenu {
+    max-height: 0px; /* Start collapsed (zero height) */
+   overflow: hidden; /* Hide overflowing content */
+    transition: max-height 0.3s ease-out;
+    background: #1a252f;
+}
+
+.submenu.expanded {
+    max-height: 500px; /* Adjust based on your content */
+}
+
+.submenu-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px 10px 40px; /* Indented from group header */
+    color: #bdc3c7;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.submenu-item:hover {
+    background: #34495e;
+    color: white;
+    padding-left: 45px; /* Slight animation on hover */
+}
+
+.submenu-item.active {
+    background: #3498db;
+    color: white;
+    border-left: 3px solid #2980b9;
+}
+
+.submenu-item i {
+    margin-right: 10px;
+    width: 16px;
+    text-align: center;
+    font-size: 0.9em;
+}
+
+/* Sidebar Menu Ends Here */
+
+/* Add this after your .sidebar styles (around line 270) */
+.dashboardContainer {
+    margin-left: 250px; /* Same as sidebar width */
+    width: calc(100% - 250px);
+    box-sizing: border-box;
+}
+
+.profile-section{text-align:center;padding-bottom:20px;padding-top:20px;border-bottom:1px solid rgba(255,255,255,0.2);margin-bottom:20px;}
+        .profile-pic{width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid white;margin-bottom:10px;}
+        .profile-pic-fallback{width:60px;height:60px;border-radius:50%;background:#07396bff;color:white;display:flex;align-items:center;justify-content:center;border:3px solid white;margin:0 auto 10px;font-weight:bold;font-size:18px;}
+        .profile-name{font-weight:bold;margin-bottom:5px;}
+        .profile-email{font-size:0.9em;opacity:0.8;margin-bottom:5px;}
+        .profile-role{font-size:1rem;background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:12px;display:inline-block;}

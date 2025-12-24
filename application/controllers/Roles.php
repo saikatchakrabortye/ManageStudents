@@ -16,7 +16,7 @@ class Roles extends MY_Controller {
             die("No Permissions");
         }*/
         $data['roles']=$this->RoleModel->getAllRolesData();
-        $this->load->view('RoleDashboard', $data);
+        $this->renderWithSidebar('RoleDashboard', $data);
     }
 
    public function getRoles() {

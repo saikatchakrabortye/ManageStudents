@@ -43,20 +43,115 @@ class EmployeeCtcModel extends CI_Model {
                        ->row();
     }
 
+    public function getLatestEffectiveStartDate($employeeId) {
+        $this->db->select('effectiveStartDate');
+        $this->db->from('employeeCtc');
+        $this->db->where('employeeId', $employeeId);
+        $this->db->order_by('effectiveStartDate', 'DESC');
+        $this->db->limit(1);
+        
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            $row = $query->row();
+            return $row->effectiveStartDate;
+        }
+        
+        return null;
+    }
+
+    public function getLatestCtc($employeeId) {
+        $this->db->select('yearlyCtc');
+        $this->db->from('employeeCtc');
+        $this->db->where('employeeId', $employeeId);
+        $this->db->order_by('effectiveStartDate', 'DESC');
+        $this->db->limit(1);
+        
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            $row = $query->row();
+            return $row->yearlyCtc;
+        }
+        
+        return null;
+    }
+
+    public function getLatestCtcRecordOfEmployee($employeeId) {
+        $this->db->select('*');
+        $this->db->from('employeeCtc');
+        $this->db->where('employeeId', $employeeId);
+        $this->db->order_by('effectiveStartDate', 'DESC');
+        $this->db->limit(1);
+        
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            $row = $query->row();
+            return $row;
+        }
+        
+        return null;
+    }
+
+    public function getSecondLatestRecord($employeeId) {
+        $this->db->select('*');
+        $this->db->from('employeeCtc');
+        $this->db->where('employeeId', $employeeId);
+        $this->db->order_by('effectiveStartDate', 'DESC');
+        $this->db->limit(1, 1); // LIMIT 1 OFFSET 1
+        
+        $query = $this->db->get();
+        
+        return $query->row();
+    }
+
+    public function getAllCtcRecordOfEmployee($employeeId) {
+        $this->db->select('*');
+        $this->db->from('employeeCtc');
+        $this->db->where('employeeId', $employeeId);
+        $this->db->order_by('effectiveStartDate', 'DESC');
+        
+        $query = $this->db->get();
+        
+        if ($query->num_rows() > 0) {
+            
+            return $query->result();
+        }
+        
+        return null;
+    }
+
     /**Add new CTC record*/
     public function addEmployeeCtc($data)
     {
-        // Validate that effectiveStartDate is not before employee's joining date
-        $employee = $this->db->select('joiningDate')
-                            ->from('employees')
-                            ->where('id', $data['employeeId'])
-                            ->get()
-                            ->row();
-        
-        if ($employee && strtotime($data['effectiveStartDate']) < strtotime($employee->joiningDate)) {
-            throw new Exception('Effective start date cannot be before joining date');
+        // Using Method Chaining to build the SQL query
+        // Checking duplicate CTC for same effective start date
+        $countRecords = $this->db->where('employeeId', $data['employeeId'])
+            ->where('effectiveStartDate', $data['effectiveStartDate'])
+            ->from('employeeCtc')
+            ->count_all_results();
+        if ($countRecords > 0) {
+            throw new Exception('Duplicate CTC for same effective start date not allowed');
         }
+
+        /**Handling when no record exist for a particular employee */
+        $latestEffectiveStartDate = $this->getLatestEffectiveStartDate($data['employeeId']);
         
+        if ($latestEffectiveStartDate != null)
+        {
+        if (strtotime($data['effectiveStartDate']) < strtotime($latestEffectiveStartDate)) {
+            throw new Exception('Effective start date must be after effective start date of last CTC record');
+        }
+        }
+
+        // Logic to set effective end date of previous record
+        $latestRecord = $this->getLatestCtcRecordOfEmployee($data['employeeId']);
+        $effectiveEndDate = date('Y-m-d', strtotime($data['effectiveStartDate'] . ' -1 day'));
+        if ($latestRecord) {
+            $this->db->where('id', $latestRecord->id);
+            $this->db->update('employeeCtc', ['effectiveEndDate' => $effectiveEndDate]);
+        }
         return $this->db->insert('employeeCtc', $data);
     }
 
@@ -64,16 +159,23 @@ class EmployeeCtcModel extends CI_Model {
     public function updateEmployeeCtc($ctcId, $data)
     {
         // Get previous CTC record
-        $previousCtc = $this->getCtcById($ctcId);
+        //$previousCtc = $this->getCtcById($ctcId);
+
+        $effectiveStartDateOfSecondLatest = $this->getSecondLatestRecord($data['employeeId']);
         
-        if (!$previousCtc) {
-            throw new Exception('CTC record not found');
+        //if (!$previousCtc) {
+        if (!$effectiveStartDateOfSecondLatest) // Means, this is the first record
+        {
+            // logic implemented in controller. If updating first record, the updated date must be >= employee joining date
+        }else
+        {
+            // Validate that new date is after previous date
+            if (strtotime($data['effectiveStartDate']) <= strtotime($effectiveStartDateOfSecondLatest->effectiveStartDate)) {
+                throw new Exception('New effective date must be after' . $effectiveStartDateOfSecondLatest->effectiveStartDate);
+            }
         }
         
-        // Validate that new date is equal to or after previous date
-        if (strtotime($data['effectiveStartDate']) < strtotime($previousCtc->effectiveStartDate)) {
-            throw new Exception('New effective date must be after the previous effective date');
-        }
+        
         
         $this->db->where('id', $ctcId);
         return $this->db->update('employeeCtc', $data);

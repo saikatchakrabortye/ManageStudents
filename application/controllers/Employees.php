@@ -13,7 +13,8 @@ class Employees extends MY_Controller {
     {
         $data['employees'] = $this->EmployeeModel->getAllEmployees();
         $data['designations'] = $this->DesignationModel->getAllDesignations();
-        $this->load->view("EmployeeDashboard", $data);
+        //$this->load->view("EmployeeDashboard", $data);
+        $this->renderWithSidebar('EmployeeDashboard', $data);
     }
 
     public function addEmployee() {
@@ -39,6 +40,7 @@ class Employees extends MY_Controller {
             'dob' => $validation['data']['dob'],
             'phone' => $validation['data']['phone'],
             'email' => $validation['data']['email'],
+            'password' => password_hash($validation['data']['password'], PASSWORD_DEFAULT),
             'designationId' => $validation['data']['designationId'],
             'joiningDate' => $validation['data']['joiningDate']
             //'createdByUserId' => $this->session->userdata('userId') // Assuming userId is stored in session upon login
@@ -233,16 +235,16 @@ public function checkCtcRecordExists($employeePublicId)
             return;
         }
         
-        $ctcRecord = $this->EmployeeCtcModel->getEmployeeCtc($employeePublicId);
+        $latestCtcRecord = $this->EmployeeCtcModel->getLatestCtcRecordOfEmployee($employeeId);
         
-        if ($ctcRecord) {
+        if ($latestCtcRecord) {
             echo json_encode([
                 'exists' => true,
-                'id' => $ctcRecord->id,
-                'effectiveStartDate' => $ctcRecord->effectiveStartDate,
-                'ctcPerYear' => $ctcRecord->yearlyCtc,
-                'createdAt' => $ctcRecord->createdAt,
-                'updatedAt' => $ctcRecord->updatedAt
+                'id' => $latestCtcRecord->id,
+                'effectiveStartDate' => $latestCtcRecord->effectiveStartDate,
+                'ctcPerYear' => $latestCtcRecord->yearlyCtc,
+                'createdAt' => $latestCtcRecord->createdAt,
+                'updatedAt' => $latestCtcRecord->updatedAt
             ]);
         } else {
             echo json_encode([
@@ -293,11 +295,21 @@ public function addCtc()
     }
     
     // Check if CTC already exists for this employee
-    $existingCtc = $this->EmployeeCtcModel->getEmployeeCtc($employeePublicId);
+    /*$existingCtc = $this->EmployeeCtcModel->getEmployeeCtc($employeePublicId);
     if ($existingCtc) {
         echo json_encode([
             'success' => false,
             'message' => 'CTC record already exists for this employee. Please update instead.'
+        ]);
+        return;
+    }*/
+    
+
+    $joiningDateOfEmployee = $this->EmployeeModel->getEmployeeById($employeeId)->joiningDate;
+    if(strtotime($effectiveStartDate) < strtotime($joiningDateOfEmployee)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Effective Start Date cannot be earlier than Employee Joining Date: ' . $joiningDateOfEmployee
         ]);
         return;
     }
@@ -374,10 +386,20 @@ public function updateCtc()
         ]);
         return;
     }
+
+    $joiningDateOfEmployee = $this->EmployeeModel->getEmployeeById($employeeId)->joiningDate;
+    if(strtotime($effectiveStartDate) < strtotime($joiningDateOfEmployee)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Effective Start Date cannot be earlier than Employee Joining Date: ' . $joiningDateOfEmployee
+        ]);
+        return;
+    }
     
     $data = [
         'effectiveStartDate' => $effectiveStartDate,
-        'yearlyCtc' => $yearlyCtc
+        'yearlyCtc' => $yearlyCtc,
+        'employeeId' => $employeeId
     ];
     
     try {
@@ -401,5 +423,24 @@ public function updateCtc()
             'message' => $e->getMessage()
         ]);
     }
+}
+
+public function getCtcRevisionsForEmployee($employeePublicId)
+{
+    header('Content-Type: application/json');
+    
+    // Get internal employee ID
+    $employeeId = $this->EmployeeCtcModel->getEmployeeIdFromPublicId($employeePublicId);
+    
+    if (!$employeeId) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Employee not found'
+        ]);
+        return;
+    }
+    
+    $result = $this->EmployeeCtcModel->getAllCtcRecordOfEmployee($employeeId);
+    echo json_encode($result);
 }
 }

@@ -10,9 +10,12 @@ class EmployeeModel extends CI_Model {
 
 public function getAllEmployees() // needed to view in employees table
 {
-    return $this->db->select('employees.*, designations.name as designationName')
+    return $this->db->select('employees.*, designations.name as designationName, (SELECT yearlyCtc FROM employeeCtc 
+                              WHERE employeeId = employees.id 
+                              ORDER BY effectiveStartDate DESC 
+                              LIMIT 1) as yearlyCtc' )
     ->from('employees')
-    ->join('designations', 'employees.designationId = designations.id')
+    ->join('designations', 'employees.designationId = designations.id', 'left')
     ->get()
     ->result();
 }
@@ -40,7 +43,7 @@ public function addEmployee($data)
     // If no duplicates, proceed with insert
     // Insert first to get auto-increment ID
     $this->db->insert('employees', $data);
-    $employeeId = $this->db->insert_id();
+    $employeeId = $this->db->insert_id(); // insert_id() method returns auto-incremented ID from last insert operation
     // Generate publicId
     $publicId = 'EMP' . str_pad($employeeId, 6, '0', STR_PAD_LEFT);
     
@@ -74,4 +77,26 @@ public function getAllEmployeesForDropdown() {
             
             return $query->result();
     }
+
+    /*public function authenticate($email, $password) {
+        	
+    		$query = $this->db->get_where('employees', array('email' => $email));
+
+            
+    
+    		if($query->num_rows() == 1) {
+        		$employee = $query->row();
+        		//return $employee->password === $password; // Use it for Plain text password comparison
+                return password_verify($password, $employee->password); // Verify hashed password
+    		}
+    
+    		return false;
+    	}
+
+        public function getEmployeeByEmail($email) {
+        $query = $this->db->get_where('employees', array('email' => $email));
+        return $query->row();
+    }*/
+
+    
 }

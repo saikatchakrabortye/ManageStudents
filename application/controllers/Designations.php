@@ -9,7 +9,8 @@ class Designations extends MY_Controller {
 
     public function index() {
         $data['designations'] = $this->DesignationModel->getAllDesignations();
-        $this->load->view("DesignationDashboard", $data);
+        //$this->load->view("DesignationDashboard", $data);
+        $this->renderWithSidebar('DesignationDashboard', $data);
     }
 
     public function addDesignation() {

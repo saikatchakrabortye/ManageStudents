@@ -52,3 +52,10 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['default_controller'] = 'welcome';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
+
+// Format: $route['routeKey'] = 'controllerName/methodName'; routeKey must match exactly as stored in database.
+$route['Dashboard'] = 'Dashboard';
+$route['Employee'] = 'Employees';
+$route['Designation'] = 'Designations';
+$route['Client'] = 'Clients';
+$route['Project'] = 'Projects';

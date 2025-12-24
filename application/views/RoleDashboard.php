@@ -227,17 +227,21 @@
     </style>
 </head>
 <body>
-    <div style="padding: 2rem; text-align: center;">
-        <h1>Roles Dashboard</h1>
-        
-        
-        <button id="addRoleModalBtn" class="submit-btn">Add Role</button> 
-    </div>
+    <div class="dashboardContainer">
+        <!---------------------------------------------------- Start of header ----------------------------------------------------->
+            <div class="dashboardHeader">
+                <h1>ROLES LIST</h1>
+                <div class="buttonsGroup">
+                <button id="addRoleModalBtn">Add Role</button>
+                </div>
+            </div> 
+            <!------------------------------------------------------ End of header ---------------------------------------------------->
+    
 
     <!--**********Show Roles Table using CI3 Listing Style using foreach loop ***************************** -->
-    <div class="table-container">    
+    <div class="tableContainer">    
     <!--<table class="records-table">-->
-        <table id="studentsTable" class="display records-table">
+        <table id="studentsTable" class="display">
             <thead>
                 <tr>
                     <th>Sl. No.</th>
@@ -330,10 +334,7 @@
             </form>
         </div>
     </div>
-    <!-- ********************************** Add Student Modal Ends Here ************************************************ -->
-
-    <!-- *********************************  View Student Modal **************************************************** -->
-<!-- View Student Modal Ends Here -->
+    </div> <!-- Dashboard Container Ends Here -->
 
 
     <script>

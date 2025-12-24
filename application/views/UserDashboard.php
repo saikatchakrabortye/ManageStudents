@@ -255,16 +255,21 @@
     </style>
 </head>
 <body>
-    <div style="padding: 2rem; text-align: center;">
-        <h1>Users Dashboard</h1>
-        
-        <!--To show add form modal-->
-        <button id="addUserModalBtn" class="submit-btn">Add User</button> 
-    </div>
+    <div class="dashboardContainer">
+        <!---------------------------------------------------- Start of header ----------------------------------------------------->
+            <div class="dashboardHeader">
+                <h1>USERS LIST</h1>
+                <div class="buttonsGroup">
+                <button id="addUserModalBtn">Add User</button>
+                
+                </div>
+            </div> 
+            <!------------------------------------------------------ End of header ---------------------------------------------------->
+    
 
     <!--**********Show Users Table using CI3 Listing Style using foreach loop ***************************** -->
-    <div class="table-container">    
-    <table class="records-table" id="usersTable">
+    <div class="tableContainer">    
+    <table class="display" id="usersTable">
             <thead>
                 <tr>
                     <th>Sl. No.</th>
@@ -321,19 +326,7 @@
             $('#usersTable').DataTable();
         });
     </script>
-    <div class="pagination">
-            <!-- Previous Button -->
-            <?php if($currentPage > 1): ?>
-                <a href="?page=<?= $currentPage - 1 ?>" class="page-btn">Previous</a>
-            <?php endif; ?>
     
-            <span class="page-info">Page <?= $currentPage ?> of <?= $totalPages ?></span>
-            
-            <!-- Next Button -->
-            <?php if($currentPage < $totalPages): ?>
-                <a href="?page=<?= $currentPage + 1 ?>" class="page-btn">Next</a>
-            <?php endif; ?>
-    </div>
     <!--My Code for Listing using CI3 ends here-->
 
     <!-- ************************* Show users Table ********************************************************* -->
@@ -509,7 +502,7 @@
     </div>
 </div>
 <!-- View user Modal Ends Here -->
-
+</div> <!-- Dashboard Container Ends Here -->
 
     <script>
         // Get elements

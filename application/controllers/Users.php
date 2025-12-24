@@ -32,7 +32,8 @@ class Users extends MY_Controller {
         
 
         //$data['students']=$this->StudentModel->getAllStudentsData();
-        $this->load->view('UserDashboard', $data);
+        //$this->load->view('UserDashboard', $data);
+        $this->renderWithSidebar('UserDashboard', $data);
     }
 
    public function getUsers() {

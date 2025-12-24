@@ -52,7 +52,7 @@
         </div> 
         <!------------------------------------------------------ End of header ---------------------------------------------------->
         <!-------------------------------------------- Start of employee-table-container ------------------------------------------>
-        <div class="employeeTableContainer">
+        <div class="tableContainer">
             <table id="employeeTable" class="display"> <!-- class="display" style is present in Datatable CSS CDN ---->
                 <thead>
                     <tr>
@@ -64,6 +64,7 @@
                         <th>Date of Birth</th>
                         <th>Designation</th>
                         <th>Date of Joining</th>
+                        <th>Last CTC</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -87,9 +88,11 @@
                             <td><?php echo date('d-m-Y', strtotime($employee->dob)); ?></td>
                             <td><?php echo $employee->designationName; ?></td>
                             <td><?php echo date('d-m-Y', strtotime($employee->joiningDate)); ?></td>
+                            <td><?php echo isset($employee->yearlyCtc) ? '₹ ' . number_format($employee->yearlyCtc) : 'N/A'; ?></td>
                             <td><?php echo $employee->status; ?></td>
                             <td>
                                 <button class="viewEmployeeBtn" data-id="<?php echo $employee->id; ?>">View</button>
+                                <button class="ctcEmployeeBtn" data-id="<?php echo $employee->id; ?>">CTC</button>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -151,6 +154,10 @@
                     <div class="formGroup">
                         <input type="email" name="email" class="formInput" placeholder="" required>
                         <label class="formLabel">Email Address</label>
+                    </div>
+                    <div class="formGroup">
+                        <input type="password" name="password" class="formInput" placeholder="" required>
+                        <label class="formLabel">Password</label>
                     </div>
                     <div class="formGroup">
                         <input type="date" name="joiningDate" class="formInput" placeholder="" required>
@@ -219,6 +226,7 @@
                         <input type="email" name="email" id="viewEmail" class="formInput" placeholder="" readonly>
                         <label class="formLabel">Email Address</label>    
                     </div>
+
                     <div class="formGroup">
                         <input type="date" name="joiningDate" id="viewJoiningDate" class="formInput" placeholder="" readonly>
                         <label class="formLabel">Date of Joining</label>
@@ -269,7 +277,7 @@
                         <div><strong>Name:</strong> <span id="ctcEmployeeName">-</span></div>
                         <div><strong>Designation:</strong> <span id="ctcEmployeeDesignation">-</span></div>
                         <div><strong>Joining Date:</strong> <span id="ctcEmployeeJoiningDate">-</span></div>
-                        <div><strong>CTC Per Month:</strong> <span id="ctcEmployeeCtcPerMonth">-</span></div>
+                        <div><strong>Last Revised CTC Per Month:</strong> <span id="ctcEmployeeCtcPerMonth">-</span></div>
                     </div>
                         <div class="tableContainer">
                             <table class="display" id="employeeCtcRevisionTable">
@@ -278,13 +286,17 @@
                                     <th>CTC Amount (Rs)</th>
                                     <th>Effective Start Date</th>
                                     <th>Effective End Date</th>
-                                    <th>Actions</th>
                                 </tr>
                                 </thead>
+                                <tbody>
+                                    <!-- CTC Revision records will be populated here via JavaScript -->
+                                    
+                                </tbody>
                             </table>
                         </div> <!-- End of tableContainer -->
                     
-                    <div>
+                    <div id="UpdateLastCtcContainer">
+                        <h2>Update Last CTC</h2>
                         <div class="formGroup">
                             <input type="date" id="effectiveStartDate" name="effectiveStartDate" class="formInput" placeholder="">
                             <label class="formLabel">Effective Start Date </label>
@@ -293,9 +305,21 @@
                             <input type="number" id="ctcPerYear" name="ctcPerYear" class="formInput" placeholder="">
                             <label class="formLabel">CTC Per Year (₹)</label>
                         </div>
+                        <button type="submit" id="updateCtcBtn">Update CTC</button>
+                    </div>
+                    <hr>
+                    <div id="AddCtcRevisionContainer">
+                        <h2>Add CTC Revision</h2>
+                        <div class="formGroup">
+                            <input type="date" id="effectiveStartDateAddForm" name="effectiveStartDate" class="formInput" placeholder="">
+                            <label class="formLabel">Effective Start Date </label>
+                        </div>
+                        <div class="formGroup">
+                            <input type="number" id="ctcPerYearAddForm" name="ctcPerYear" class="formInput" placeholder="">
+                            <label class="formLabel">CTC Per Year (₹)</label>
+                        </div>
                         <div>
-                            <button type="submit" id="saveCtcBtn" hidden>Save CTC</button>
-                            <button type="submit" id="updateCtcBtn" hidden>Update CTC</button>
+                            <button type="submit" id="saveCtcBtn">Save CTC</button>
                         </div>
                     </div>
                 </div>
@@ -408,6 +432,32 @@
                 viewEmployeeDetails(employeeId);
             }
         });
+
+        // Add event listener for ctc buttons for each employee row
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.classList.contains('ctcEmployeeBtn')) {
+                const employeeId = e.target.getAttribute('data-id');
+                populateSelectEmployeeCtcForm(employeeId);
+            }
+        });
+
+        async function populateSelectEmployeeCtcForm(employeeId) {
+        try {
+            const response = await fetch(`Employees/getEmployeeById/${employeeId}`);
+            const employee = await response.json();
+            
+            selectEmployee(employee.id, employee.name, employee.designationName, employee.joiningDate);
+            
+            
+            // Show modal
+            document.getElementById('ctcModal').style.display = 'flex';
+            
+        } catch (error) {
+            console.error('Error fetching employee details:', error);
+        }
+        }
+
+
 
         // Add event listener for status change
         document.addEventListener('change', function(e) {
@@ -629,8 +679,14 @@
         document.getElementById('employeeDropdown').style.display = 'none';
         document.getElementById('employeeSearch').value = '';
 
+        // Reset CTC Form fields
+        document.getElementById('effectiveStartDate').value = '';
+        document.getElementById('ctcPerYear').value = '';
+        document.getElementById('effectiveStartDateAddForm').value = '';
+        document.getElementById('ctcPerYearAddForm').value = '';
         // Check if CTC record exists for selected employee
         checkCtcRecordExists(employeeId);
+        loadCtcRevisions(employeeId);
     }
 
     function formatDate(dateString) {
@@ -689,19 +745,17 @@
     async function checkCtcRecordExists(employeeId)
     {
         try {
-            /** My Logic: See if a record exists in ctc table. If exist, then populate the input fields with existing data and show update button.
-             * If not exist, then show empty input fields and show save button.
-             */
+            
             const response = await fetch(`Employees/checkCtcRecordExists/${employeeId}`);
             const employeeCtcDetails = await response.json();
 
-            const saveBtn = document.querySelector('#saveCtcBtn');
-            const updateBtn = document.querySelector('#updateCtcBtn');
+            //const saveBtn = document.querySelector('#saveCtcBtn');
+            //const updateBtn = document.querySelector('#updateCtcBtn');
 
             if (employeeCtcDetails.exists)
             {
-                if (saveBtn) saveBtn.hidden = employeeCtcDetails.exists; // Hide Save button if record exists + the button exists
-                if (updateBtn) updateBtn.hidden = !employeeCtcDetails.exists; // Show Update button if record exists + the button exists (done to keep code independent of button existance)
+                //if (saveBtn) saveBtn.hidden = employeeCtcDetails.exists; // Hide Save button if record exists + the button exists
+                //if (updateBtn) updateBtn.hidden = !employeeCtcDetails.exists; // Show Update button if record exists + the button exists (done to keep code independent of button existance)
 
                 // Populate the fields
                 document.getElementById('effectiveStartDate').value = employeeCtcDetails.effectiveStartDate;
@@ -722,8 +776,8 @@
             }
             else
             {
-                if (saveBtn) saveBtn.hidden = employeeCtcDetails.exists; // Show Save button if record does not exist + the button exists
-                if (updateBtn) updateBtn.hidden = !employeeCtcDetails.exists; // Hide Update button if record does not exist + the button exists
+                //if (saveBtn) saveBtn.hidden = employeeCtcDetails.exists; // Show Save button if record does not exist + the button exists
+                //if (updateBtn) updateBtn.hidden = !employeeCtcDetails.exists; // Hide Update button if record does not exist + the button exists
                 // Clear fields
                 document.getElementById('effectiveStartDate').value = '';
                 document.getElementById('ctcPerYear').value = '';
@@ -738,7 +792,46 @@
     }
 
     document.addEventListener('click', async function(e) {
-    if (e.target && (e.target.id === 'saveCtcBtn' || e.target.id === 'updateCtcBtn')) {
+    if (e.target && e.target.id=== 'saveCtcBtn') {
+        e.preventDefault();
+        const employeeId = document.getElementById('selectedEmployeeId')?.value;
+        const effectiveStartDate = document.getElementById('effectiveStartDateAddForm')?.value;
+        var ctcPerYear = document.getElementById('ctcPerYearAddForm')?.value;
+        if (ctcPerYear && ctcPerYear.includes('-')) {
+            alert('CTC cannot be negative');
+        }
+        ctcPerYear = Math.abs(parseInt(ctcPerYear || 0));
+        // Prepare form data
+        const formData = new FormData();
+        formData.append('employeeId', employeeId);
+        formData.append('effectiveStartDate', effectiveStartDate);
+        formData.append('yearlyCtc', ctcPerYear);
+        // Determine API endpoint based on which button was clicked
+        const url = 'Employees/addCtc';
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert(result.message);
+                // Refresh CTC check after successful operation
+                checkCtcRecordExists(employeeId);
+                loadCtcRevisions(employeeId);
+            } else {
+                alert('Error: ' + result.message);
+            }
+            
+        } catch (error) {
+            alert('Request failed: ' + error.message);
+        }
+    }
+    
+    else if (e.target && e.target.id === 'updateCtcBtn') {
         e.preventDefault();
         const employeeId = document.getElementById('selectedEmployeeId')?.value;
         const effectiveStartDate = document.getElementById('effectiveStartDate')?.value;
@@ -755,16 +848,11 @@
         formData.append('employeeId', employeeId);
         formData.append('effectiveStartDate', effectiveStartDate);
         formData.append('yearlyCtc', ctc);
-
-        // Include ctcId for update operation
-        if (e.target.id === 'updateCtcBtn' && ctcId) {
-            formData.append('ctcId', ctcId);
-        }
+        formData.append('ctcId', ctcId);
+        
 
         // Determine API endpoint based on which button was clicked
-        const url = e.target.id === 'saveCtcBtn' ? 
-            'Employees/addCtc' : 
-            'Employees/updateCtc';
+        const url = 'Employees/updateCtc';
 
         try {
             const response = await fetch(url, {
@@ -778,6 +866,7 @@
                 alert(result.message);
                 // Refresh CTC check after successful operation
                 checkCtcRecordExists(employeeId);
+                loadCtcRevisions(employeeId);
             } else {
                 alert('Error: ' + result.message);
             }
@@ -788,7 +877,43 @@
     }
     });
     /**** ******** Check Existing CTC Logic ends here ************************************** */
-        
+
+    /************* loading data for CTC records table for individual employees */
+    async function loadCtcRevisions(employeeId) {
+        try {
+            const response = await fetch(`Employees/getCtcRevisionsForEmployee/${employeeId}`);
+            const data = await response.json();
+
+            const tbody = document.querySelector("#employeeCtcRevisionTable tbody");
+            tbody.innerHTML = ""; // Clear existing rows
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3">No records found</td></tr>`;
+                return;
+            }
+
+            data.forEach(item => {
+                const tr = document.createElement("tr");
+                if (item.effectiveEndDate === null) {
+                    item.effectiveEndDate = "Present";
+                }
+                else{
+                    item.effectiveEndDate = formatDate(item.effectiveEndDate);
+                }
+                tr.innerHTML = `
+                    <td>${item.yearlyCtc}</td>
+                    <td>${formatDate(item.effectiveStartDate)}</td>
+                    <td>${item.effectiveEndDate}</td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+
+        } catch (error) {
+            console.error("Error loading CTC revisions:", error);
+        }
+    }
+       /*** loading data for ctc table for individual ends here ******** */ 
     </script>
     <!-------------------------------------- Javascript Code Ends Here ---------------------------------------------------------->
     </body>

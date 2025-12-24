@@ -2,17 +2,32 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 /***** _Controller suffix is fixed and MY part can be renamed. But must follow codeignitor3 convention */
 class MY_Controller extends CI_Controller {
-    
+    protected $sidebarData; 
     public function __construct() {
         parent::__construct();
+        $this->load->model('SidebarModel');
         $this->load->library('session');
         $this->load->library('form_validation');
         $this->load->library('upload');
         $this->load->helper('url');
         $this->load->helper('string'); // For getInitials helper function
         $this->load->helper('permission'); // Load custom permission helper
+        $this->load->helper('sidebar'); // Load custom sidebar helper
         $this->checkLogin();
         
+        $this->sidebarData = $this->SidebarModel->getAllSidebarItems();
+    }
+
+    // This method replaces $this->load->view() for pages with sidebar
+    protected function renderWithSidebar($view, $data = []) {
+        // Merge sidebar data with page-specific data
+        $data['sidebar'] = $this->sidebarData;
+        
+        // Load the template structure
+        $this->load->view('templates/header', $data);
+        $this->load->view('templates/sidebar', $data);
+        $this->load->view($view, $data); // Your main page content
+        $this->load->view('templates/footer', $data);
     }
     
     protected function checkLogin() {
