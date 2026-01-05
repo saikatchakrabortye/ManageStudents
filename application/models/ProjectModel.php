@@ -26,6 +26,17 @@ class ProjectModel extends CI_Model {
         ->row();
     }
 
+    public function getProjectById($id)
+    {
+        return $this->db->select('projects.*, clients.name as clientName')
+        ->from('projects')
+        ->join('clients', 'projects.clientId = clients.id', 'left')
+        ->where('projects.id', $id)
+        ->where('projects.status', 'active')
+        ->get()
+        ->row();
+    }
+
     public function getIdFromPublicId($publicId)
     {
         return $this->db->select('id')

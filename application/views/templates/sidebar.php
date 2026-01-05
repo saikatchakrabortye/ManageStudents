@@ -1,5 +1,9 @@
 <div class="sidebar" id="sidebar">
-    <div class="profile-section" id="profileSection"></div>
+    <div class="profile-section" id="profileSection">
+        <h2>Welcome Back! </h2>
+        <h3> <?php echo $this->session->userdata('name'); ?> <br> ( <?php echo $this->session->userdata('email'); ?>)</h3>
+    </div>
+    
     <!-- DASHBOARD -->
     <?php if (!empty($sidebar['dashboard'])): ?>
         <a href="<?= site_url($sidebar['dashboard']->routeKey); ?>"
@@ -43,8 +47,8 @@
 
         <?php endforeach; ?>
     <?php endif; ?>
-
-    <a href="<?= base_url('Login/logout'); ?>">
+    
+    <a href="<?= base_url('Employees/logout'); ?>">
         <button style="margin:20px;">Logout</button>
     </a>
 </div>
@@ -96,7 +100,7 @@ function getInitials(fullName) {
             return fullName ? fullName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) : '';
         }
 
-        async function loadProfileData() {
+        /*async function loadProfileData() {
             try {
                 const response = await fetch('http://localhost/ManageStudents/Users/getProfileData');
                 const user = await response.json();
@@ -121,5 +125,5 @@ function getInitials(fullName) {
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadProfileData);
+        document.addEventListener('DOMContentLoaded', loadProfileData);*/
 </script>

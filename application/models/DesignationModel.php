@@ -9,7 +9,9 @@ class DesignationModel extends CI_Model {
     } 
 
     public function getAllDesignations() {
-        return $this->db->order_by('name', 'ASC')->get('designations')->result();
+        return $this->db->order_by('name', 'ASC')
+        ->where('name !=', 'Admin')
+        ->get('designations')->result();
     }
 
     public function getDesignationById($id) {

@@ -362,3 +362,38 @@ $config['updateProject'] = [
         'rules' => 'required'
     ]
 ];
+
+$config['changePassword'] = [
+    [
+        'field' => 'oldPassword',
+        'label' => 'Old Password',
+        'rules' => 'required|min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
+        /**The errors array allow us to set custom validation messages */
+        'errors' => [
+        'regex_match' => 'Old Password should contain at least 1 Capital Letter, Small Letter, Number, and Special Characters like @$!%*?&'
+    ]
+    ],
+    [
+        'field' => 'newPassword',
+        'label' => 'New Password',
+        'rules' => 'required|min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
+        /**The errors array allow us to set custom validation messages */
+        'errors' => [
+        'regex_match' => 'New Password should contain at least 1 Capital Letter, Small Letter, Number, and Special Characters like @$!%*?&'
+    ]
+    ],
+    [
+        'field' => 'confirmPassword',
+        'label' => 'Confirm Password',
+        'rules' => 'required|min_length[8]|max_length[255]|regex_match[/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/]',
+        /**The errors array allow us to set custom validation messages */
+        'errors' => [
+        'regex_match' => 'Confirm Password should contain at least 1 Capital Letter, Small Letter, Number, and Special Characters like @$!%*?&'
+    ]
+    ],
+    [
+        'field' => 'employeeId',
+        'label' => 'Employee ID',
+        'rules' => 'required'
+    ]
+];

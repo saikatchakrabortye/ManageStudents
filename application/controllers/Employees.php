@@ -443,4 +443,9 @@ public function getCtcRevisionsForEmployee($employeePublicId)
     $result = $this->EmployeeCtcModel->getAllCtcRecordOfEmployee($employeeId);
     echo json_encode($result);
 }
+
+public function logout() {
+        $this->session->sess_destroy();
+        redirect('Login');
+    }
 }

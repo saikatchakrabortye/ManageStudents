@@ -32,7 +32,7 @@ class MY_Controller extends CI_Controller {
     
     protected function checkLogin() {
         // Check user is loggedIn and has userId in session
-        if (!$this->session->userdata('loggedIn') || !$this->session->userdata('userId')) {
+        if (!$this->session->userdata('loggedIn') || !$this->session->userdata('employeeId')) {
             redirect('Login');
         }
     }

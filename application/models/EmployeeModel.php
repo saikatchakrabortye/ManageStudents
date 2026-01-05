@@ -16,6 +16,7 @@ public function getAllEmployees() // needed to view in employees table
                               LIMIT 1) as yearlyCtc' )
     ->from('employees')
     ->join('designations', 'employees.designationId = designations.id', 'left')
+    ->where('employees.designationId !=', '10')
     ->get()
     ->result();
 }
@@ -60,9 +61,15 @@ public function updateEmployee($employeePublicId, $data)
     return $this->db->update('employees', $data);
 }
 
-public function deactivateEmployee($employeeId, $status) 
+public function changePassword($employeeId, $data)
 {
     $this->db->where('id', $employeeId);
+    return $this->db->update('employees', $data);
+}
+
+public function deactivateEmployee($employeeId, $status) 
+{
+    $this->db->where('publicId', $employeeId);
     return $this->db->update('employees', ['status' => $status]);
 }
 
@@ -72,13 +79,15 @@ public function getAllEmployeesForDropdown() {
     $this->db->from('employees e');
     $this->db->join('designations d', 'e.designationId = d.id', 'left');
     $this->db->where('e.status', 'active');
+    $this->db->where('e.designationId !=', '10');
     $this->db->order_by('e.name', 'asc');
+
     $query = $this->db->get();
             
             return $query->result();
     }
 
-    /*public function authenticate($email, $password) {
+    public function authenticate($email, $password) {
         	
     		$query = $this->db->get_where('employees', array('email' => $email));
 
@@ -94,9 +103,12 @@ public function getAllEmployeesForDropdown() {
     	}
 
         public function getEmployeeByEmail($email) {
-        $query = $this->db->get_where('employees', array('email' => $email));
-        return $query->row();
-    }*/
+        return $this->db->select('employees.*, designations.name as designationName')
+    ->from('employees')
+    ->join('designations', 'employees.designationId = designations.id')
+    ->where('employees.email', $email)
+    ->get()->row();
+    }
 
     
 }

@@ -4,6 +4,7 @@ class Login extends CI_Controller {
     public function __construct() {
         parent::__construct();
         $this->load->model('UserModel');
+        $this->load->model('EmployeeModel');
         $this->load->helper('url');
         $this->load->library('session');
         $this->load->library('form_validation');
@@ -24,24 +25,43 @@ class Login extends CI_Controller {
         $email = $this->input->post('email');
         $password = $this->input->post('password');
         
-        if($this->UserModel->authenticate($email, $password)){
+        if($this->EmployeeModel->authenticate($email, $password)){
+            $employee=$this->EmployeeModel->getEmployeeByEmail($email);
+            if($employee->status === 'inactive'){
+        $this->session->set_flashdata('error', 'Your account is Blocked. Please contact support.');
+            	redirect('Login');
+            }
+            $session_data=array(
+                'email' => $employee->email,
+                'name' =>$employee->name,
+                'loggedIn' => TRUE,
+                'employeeId'=>$employee->id,
+                'employeePublicId' => $employee->publicId,
+                'designationName' => $employee->designationName,
+                'designationId'=>$employee->designationId);
+       /*if($this->UserModel->authenticate($email, $password)){
             $user=$this->UserModel->getUserByEmail($email);
             if($user->status === 'inactive'){
         $this->session->set_flashdata('error', 'Your account is Blocked. Please contact support.');
             	redirect('Login');
-            }
+            }*/
 		//set session data
         
-		$session_data=array(
+		/*$session_data=array(
 		'email' => $user->email,
         'name' =>$user->name,
         'profilePic'=>$user->profilePic,
 		'loggedIn' => TRUE,
         'role'=>$this->UserModel->getRoleNameFromRoleId($user->roleId),
         'roleId'=>$user->roleId,
-        'userId'=>$user->id);
+        'userId'=>$user->id);*/
 	$this->session->set_userdata($session_data);
-	redirect('Dashboard');
+    if($employee->designationId == 10){
+	    redirect('Dashboard');
+    }
+    else{
+        redirect('ChangePassword');
+    }
 	} 
        
     else{
