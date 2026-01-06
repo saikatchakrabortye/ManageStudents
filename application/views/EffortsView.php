@@ -42,6 +42,32 @@
                    class="formInput" style="width: 100%; padding: 8px;">
         </div>
         
+        <!-- Project Filter -->
+        <div style="flex: 1; min-width: 200px; position: relative;">
+            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Project</label>
+            <input type="text" id="projectFilterInput" class="formInput" 
+                   placeholder="Select project..." 
+                   style="width: 100%; padding: 8px; cursor: pointer;"
+                   value="<?php 
+                        if (isset($filterProjectId) && !empty($filterProjectId)) {
+                            foreach ($projects as $proj) {
+                                if ($proj->id == $filterProjectId) {
+                                    echo htmlspecialchars($proj->name . ' (' . $proj->publicId . ')');
+                                    break;
+                                }
+                            }
+                        }
+                   ?>">
+            <input type="hidden" name="projectId" id="selectedProjectFilterId" 
+                   value="<?php echo isset($filterProjectId) ? $filterProjectId : ''; ?>">
+            <div id="projectFilterDropdown" class="dropdown" style="display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 9999; background: white;">
+                <input type="text" id="projectFilterSearch" class="dropdownSearchInput" 
+                       placeholder="Search projects..." 
+                       style="width: 100%; padding: 8px;">
+                <div id="projectFilterResults" style="max-height: 200px; overflow-y: auto;"></div>
+            </div>
+        </div>
+        
         <?php if ($designationId == 10): ?>
         <!-- Employee Filter (Admin only) -->
         <div style="flex: 1; min-width: 200px; position: relative;">
@@ -393,6 +419,74 @@ function resetProjectForm() {
 }
 // ========== END PROJECT DROPDOWN FUNCTIONALITY ==========
 
+// ========== PROJECT FILTER DROPDOWN FUNCTIONALITY ==========
+let allProjectsForFilter = <?php echo json_encode($projects ?? []); ?>;
+
+// Load projects on focus
+document.getElementById('projectFilterInput').addEventListener('click', function() {
+    document.getElementById('projectFilterDropdown').style.display = 'block';
+    filterProjectsForFilter();
+});
+
+// Filter projects on typing
+document.getElementById('projectFilterSearch').addEventListener('input', filterProjectsForFilter);
+
+function filterProjectsForFilter() {
+    const search = document.getElementById('projectFilterSearch').value.toLowerCase();
+    const filtered = allProjectsForFilter.filter(proj => 
+        proj.name.toLowerCase().includes(search) ||  
+        proj.publicId.toLowerCase().includes(search)
+    );
+    
+    const results = document.getElementById('projectFilterResults');
+    if (filtered.length) {
+        results.innerHTML = filtered.map(proj => 
+            `<div class="dropdownItem projectFilterItem" data-id="${proj.id}" data-name="${proj.name}" data-publicid="${proj.publicId}">
+                <strong>${proj.name}</strong> (${proj.publicId})
+            </div>`
+        ).join('');
+        
+        // Add event listeners
+        results.querySelectorAll('.dropdownItem.projectFilterItem').forEach(item => {
+            item.addEventListener('click', function() {
+                selectProjectFilter(this.dataset.id, this.dataset.name, this.dataset.publicid);
+            });
+        });
+    } else {
+        results.innerHTML = '<div style="padding: 10px; color: #666;">No projects found</div>';
+    }
+}
+
+function selectProjectFilter(projectId, projectName, projectPublicId) {
+    // Update the input field
+    document.getElementById('projectFilterInput').value = `${projectName} (${projectPublicId})`;
+    document.getElementById('selectedProjectFilterId').value = projectId;
+    
+    // Hide dropdown and clear search
+    document.getElementById('projectFilterDropdown').style.display = 'none';
+    document.getElementById('projectFilterSearch').value = '';
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    const projectFilterDropdown = document.getElementById('projectFilterDropdown');
+    const projectFilterInput = document.getElementById('projectFilterInput');
+    
+    if (!e.target.closest('#projectFilterDropdown') && e.target !== projectFilterInput) {
+        projectFilterDropdown.style.display = 'none';
+    }
+});
+
+// Clear project filter
+function clearProjectFilter() {
+    document.getElementById('projectFilterInput').value = '';
+    document.getElementById('selectedProjectFilterId').value = '';
+    document.getElementById('projectFilterSearch').value = '';
+    document.getElementById('projectFilterResults').innerHTML = '';
+    document.getElementById('projectFilterDropdown').style.display = 'none';
+}
+// ========== END PROJECT FILTER DROPDOWN FUNCTIONALITY ==========
+
 // ========== EMPLOYEE DROPDOWN FUNCTIONALITY (Admin only) ==========
 <?php if ($designationId == 10): ?>
 let allEmployees = <?php echo json_encode($employees ?? []); ?>;
@@ -475,6 +569,9 @@ document.getElementById('clearFilters').addEventListener('click', function() {
     <?php if ($designationId == 10): ?>
     clearEmployeeFilter();
     <?php endif; ?>
+    
+    // Clear project filter
+    clearProjectFilter();
     
     // Submit form to reload with default values
     document.getElementById('filterForm').submit();

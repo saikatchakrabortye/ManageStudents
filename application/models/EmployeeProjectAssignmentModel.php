@@ -128,6 +128,20 @@ class EmployeeProjectAssignmentModel extends CI_Model {
         
         return $query->result();
     }
+
+    // Add this method to your EmployeeProjectAssignmentModel class
+public function getAssignedProjectsForEmployee($employeeId)
+{
+    return $this->db->select('projects.id, projects.publicId, projects.name')
+        ->from('projectAssignedTo pat')
+        ->join('projects', 'pat.projectId = projects.id')
+        ->where('pat.employeeId', $employeeId)
+        ->where('pat.status', 'active')
+        ->where('projects.status', 'active')
+        ->order_by('projects.name', 'asc')
+        ->get()
+        ->result();
+}
     
     /**
      * Toggle assignment status

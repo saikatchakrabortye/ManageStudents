@@ -481,3 +481,27 @@ button:hover {
     color: #666;
     font-size: 0.9em;
 }
+
+/* Edit Duration Button Styles */
+.edit-duration-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.edit-duration-btn:hover {
+    background: #218838;
+}
+
+/* Ensure dropdowns have proper z-index */
+.dropdown {
+    z-index: 10000 !important;
+}
+
+#employeeDropdown, #projectFilterDropdown {
+    z-index: 10001 !important;
+}

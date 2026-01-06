@@ -15,6 +15,16 @@ class ProjectModel extends CI_Model {
         ->result();
     }
 
+    public function getAllProjects()
+{
+    return $this->db->select('id, publicId, name')
+        ->from('projects')
+        ->where('status', 'active')
+        ->order_by('name', 'asc')
+        ->get()
+        ->result();
+}
+
     public function getProjectByPublicId($publicId)
     {
         return $this->db->select('projects.*, clients.name as clientName')

@@ -10,7 +10,7 @@ defined ('BASEPATH') OR exit('No direct access allowed!');
     duration time not null,
     createdAt timestamp default current_timestamp,
     updatedAt timestamp default current_timestamp on update current_timestamp,
-	status enum('active', 'inactive') default 'active',
+    status enum('active', 'inactive') default 'active',
     constraint fk_efforts_projectId_projects_id foreign key (projectId) references projects(id),
     constraint fk_efforts_employeeId_employees_id foreign key (employeeId) references employees(id));
 */
@@ -72,7 +72,8 @@ class EffortModel extends CI_Model
         ->get()
         ->result();
     }
-        /**
+    
+    /**
      * Get total hours worked for an employee
      * Converts minutes to hours:minutes format
      */
@@ -125,43 +126,55 @@ class EffortModel extends CI_Model
         ->row();
     }
 
-    public function getFilteredEffortsForEmployee($employeeId, $fromDate, $toDate)
-{
-    return $this->db->select('efforts.*, projects.name as projectName, employees.name as employeeName')
-        ->from('efforts')
-        ->join('projects', 'efforts.projectId = projects.id', 'left')
-        ->join('employees', 'efforts.employeeId = employees.id', 'left')
-        ->where('efforts.employeeId', $employeeId)
-        ->where('efforts.effortDate >=', $fromDate)
-        ->where('efforts.effortDate <=', $toDate)
-        ->order_by('efforts.effortDate', 'desc')
-        ->get()
-        ->result();
-}
+    public function getFilteredEffortsForEmployee($employeeId, $fromDate, $toDate, $projectId = null)
+    {
+        $this->db->select('efforts.*, projects.name as projectName, employees.name as employeeName')
+            ->from('efforts')
+            ->join('projects', 'efforts.projectId = projects.id', 'left')
+            ->join('employees', 'efforts.employeeId = employees.id', 'left')
+            ->where('efforts.employeeId', $employeeId)
+            ->where('efforts.effortDate >=', $fromDate)
+            ->where('efforts.effortDate <=', $toDate);
+        
+        // Add project filter if provided
+        if (!empty($projectId)) {
+            $this->db->where('efforts.projectId', $projectId);
+        }
+        
+        return $this->db->order_by('efforts.effortDate', 'desc')
+            ->get()
+            ->result();
+    }
 
-/**
- * Get all filtered efforts (for admin view)
- */
-public function getAllFilteredEfforts($fromDate, $toDate)
-{
-    return $this->db->select('efforts.*, projects.name as projectName, employees.name as employeeName')
-        ->from('efforts')
-        ->join('projects', 'efforts.projectId = projects.id', 'left')
-        ->join('employees', 'efforts.employeeId = employees.id', 'left')
-        ->where('efforts.effortDate >=', $fromDate)
-        ->where('efforts.effortDate <=', $toDate)
-        ->order_by('efforts.effortDate', 'desc')
-        ->order_by('employees.name', 'asc')
-        ->get()
-        ->result();
-}
+    /**
+     * Get all filtered efforts (for admin view)
+     */
+    public function getAllFilteredEfforts($fromDate, $toDate, $projectId = null)
+    {
+        $this->db->select('efforts.*, projects.name as projectName, employees.name as employeeName')
+            ->from('efforts')
+            ->join('projects', 'efforts.projectId = projects.id', 'left')
+            ->join('employees', 'efforts.employeeId = employees.id', 'left')
+            ->where('efforts.effortDate >=', $fromDate)
+            ->where('efforts.effortDate <=', $toDate);
+        
+        // Add project filter if provided
+        if (!empty($projectId)) {
+            $this->db->where('efforts.projectId', $projectId);
+        }
+        
+        return $this->db->order_by('efforts.effortDate', 'desc')
+            ->order_by('employees.name', 'asc')
+            ->get()
+            ->result();
+    }
 
-public function updateEffortDuration($publicId, $duration)
-{
-    $this->db->where('publicId', $publicId);
-    return $this->db->update('efforts', [
-        'duration' => $duration,
-        'updatedAt' => date('Y-m-d H:i:s')
-    ]);
-}
+    public function updateEffortDuration($publicId, $duration)
+    {
+        $this->db->where('publicId', $publicId);
+        return $this->db->update('efforts', [
+            'duration' => $duration,
+            'updatedAt' => date('Y-m-d H:i:s')
+        ]);
+    }
 }
