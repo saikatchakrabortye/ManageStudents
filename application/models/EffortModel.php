@@ -124,4 +124,44 @@ class EffortModel extends CI_Model
         ->get()
         ->row();
     }
+
+    public function getFilteredEffortsForEmployee($employeeId, $fromDate, $toDate)
+{
+    return $this->db->select('efforts.*, projects.name as projectName, employees.name as employeeName')
+        ->from('efforts')
+        ->join('projects', 'efforts.projectId = projects.id', 'left')
+        ->join('employees', 'efforts.employeeId = employees.id', 'left')
+        ->where('efforts.employeeId', $employeeId)
+        ->where('efforts.effortDate >=', $fromDate)
+        ->where('efforts.effortDate <=', $toDate)
+        ->order_by('efforts.effortDate', 'desc')
+        ->get()
+        ->result();
+}
+
+/**
+ * Get all filtered efforts (for admin view)
+ */
+public function getAllFilteredEfforts($fromDate, $toDate)
+{
+    return $this->db->select('efforts.*, projects.name as projectName, employees.name as employeeName')
+        ->from('efforts')
+        ->join('projects', 'efforts.projectId = projects.id', 'left')
+        ->join('employees', 'efforts.employeeId = employees.id', 'left')
+        ->where('efforts.effortDate >=', $fromDate)
+        ->where('efforts.effortDate <=', $toDate)
+        ->order_by('efforts.effortDate', 'desc')
+        ->order_by('employees.name', 'asc')
+        ->get()
+        ->result();
+}
+
+public function updateEffortDuration($publicId, $duration)
+{
+    $this->db->where('publicId', $publicId);
+    return $this->db->update('efforts', [
+        'duration' => $duration,
+        'updatedAt' => date('Y-m-d H:i:s')
+    ]);
+}
 }

@@ -12,14 +12,56 @@ class Efforts extends MY_Controller
     public function index()
     {
         $employeeId = $this->session->userdata('employeeId');
-        $designationId = $this->session->userdata('designationId');
-        if ($designationId != 10){
-        $data['efforts'] = $this->EffortModel->getAllEffortsForEmployeeId($employeeId) ?? []; // returns an empty array when result is null; i.e no result found. Else gives error
-        } else {
-            $data['efforts'] = $this->EffortModel->getAllEfforts();
-        }
+    $designationId = $this->session->userdata('designationId');
+    
+    // Get filter values from GET request
+    $fromDate = $this->input->get('fromDate');
+    $toDate = $this->input->get('toDate');
+    $filterEmployeeId = $this->input->get('employeeId');
+    
+    // Set default dates to today if not provided
+    if (empty($fromDate)) {
+        $fromDate = date('Y-m-d');
+    }
+    if (empty($toDate)) {
+        $toDate = date('Y-m-d');
+    }
+    
+    // Validate date range
+    if (strtotime($fromDate) > strtotime($toDate)) {
+        $data['error'] = 'From date cannot be greater than To date';
+        $fromDate = $toDate = date('Y-m-d'); // Reset to today
+    }
+    
+    // For non-admin users
+    if ($designationId != 10) {
+        // Non-admin can only see their own efforts
+        $data['efforts'] = $this->EffortModel->getFilteredEffortsForEmployee($employeeId, $fromDate, $toDate) ?? [];
         $data['totalHoursWorked'] = $this->EffortModel->getTotalHoursWorkedForEmployee($employeeId);
-        $this->renderWithSideBar('EffortsView', $data);
+    } else {
+        // Admin users
+        if (!empty($filterEmployeeId)) {
+            // Filter by specific employee
+            $data['efforts'] = $this->EffortModel->getFilteredEffortsForEmployee($filterEmployeeId, $fromDate, $toDate) ?? [];
+            $data['totalHoursWorked'] = $this->EffortModel->getTotalHoursWorkedForEmployee($filterEmployeeId);
+        } else {
+            // Show all employees' efforts
+            $data['efforts'] = $this->EffortModel->getAllFilteredEfforts($fromDate, $toDate) ?? [];
+            $data['totalHoursWorked'] = null; // Cannot calculate total for all employees
+        }
+        
+        // Load employee model for dropdown
+        $this->load->model('EmployeeModel');
+        $data['employees'] = $this->EmployeeModel->getAllEmployeesForDropdown();
+    }
+    
+    // Pass filter values back to view
+    $data['fromDate'] = $fromDate;
+    $data['toDate'] = $toDate;
+    $data['filterEmployeeId'] = $filterEmployeeId;
+    $data['designationId'] = $designationId;
+    
+    $this->renderWithSideBar('EffortsView', $data);
     }
 
         /**
@@ -84,4 +126,58 @@ class Efforts extends MY_Controller
             ]);
         }
     }
+
+    public function updateEffortDuration() {
+    header('Content-Type: application/json');
+    
+    // Only admin can update
+    $designationId = $this->session->userdata('designationId');
+    if ($designationId != 10) {
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Only admin can update effort duration'
+        ]);
+        return;
+    }
+    
+    $effortPublicId = $this->input->post('effortPublicId');
+    $effortDuration = $this->input->post('effortDuration');
+    
+    // Validate inputs
+    if (empty($effortPublicId) || empty($effortDuration)) {
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Effort ID and duration are required'
+        ]);
+        return;
+    }
+    
+    try {
+        // Update effort duration
+        $result = $this->EffortModel->updateEffortDuration($effortPublicId, $effortDuration);
+        
+        if ($result) {
+            // Get updated effort data
+            $effort = $this->EffortModel->getEffortByPublicId($effortPublicId);
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Effort duration updated successfully', 
+                'effort' => [
+                    'publicId' => $effort->publicId,
+                    'effortDate' => $effort->effortDate,
+                    'duration' => $effort->duration,
+                    'projectName' => $effort->projectName
+                ]
+            ]);
+        } else {
+            throw new Exception("Failed to update effort duration");
+        }
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Error updating effort: ' . $e->getMessage()
+        ]);
+    }
+}
 }
