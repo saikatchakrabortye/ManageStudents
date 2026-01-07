@@ -6,205 +6,16 @@
     <title>Designation Master</title>
     <!-- Add DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-    <style>
-        /***** Styles for Modal Display *****/
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-        .modalContent {
-            background-color: white;
-            margin: 15% auto;
-            padding: 20px;
-            width: 50%;
-            border-radius: 5px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .closeBtn {
-            float: right;
-            cursor: pointer;
-            font-size: 20px;
-        }
-        
-        /***** Header Styles *****/
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-bottom: 1px solid #dee2e6;
-        }
-        
-        /***** Table Styles *****/
-        .designationTableContainer {
-            padding: 20px;
-        }
-        
-        /***** Success Modal Styles *****/
-        #successModal .modalContent {
-            text-align: center;
-            padding: 30px;
-        }
-
-        #successModal h2 {
-            color: green;
-            margin-bottom: 20px;
-        }
-
-        #successModal button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 20px;
-        }
-        
-        /***** Form Styles *****/
-        form div {
-            margin-bottom: 15px;
-            position: relative;
-        }
-        
-        form input, form select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        
-        form label {
-            position: absolute;
-            left: 10px;
-            top: -10px;
-            background: white;
-            padding: 0 5px;
-            font-size: 14px;
-            color: #666;
-        }
-        
-        button[type="submit"] {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        button[type="submit"]:hover {
-            background-color: #0056b3;
-        }
-        
-        .error-message-onsubmit {
-            color: red;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-            padding: 10px;
-            background-color: #f8d7da;
-            border: 1px solid #f5c6cb;
-            border-radius: 4px;
-        }
-        
-        /***** Action Buttons *****/
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-        }
-        
-        .viewDesignationBtn, .editDesignationBtn {
-            padding: 5px 10px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .viewDesignationBtn {
-            background-color: #28a745;
-            color: white;
-        }
-        
-        .viewDesignationBtn:hover {
-            background-color: #218838;
-        }
-        
-        .editDesignationBtn {
-            background-color: #ffc107;
-            color: black;
-        }
-        
-        .editDesignationBtn:hover {
-            background-color: #e0a800;
-        }
-        
-        #addDesignationBtn, #employeeDashboardBtn {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-left: 10px;
-        }
-        
-        #addDesignationBtn:hover, #employeeDashboardBtn:hover {
-            background-color: #0056b3;
-        }
-        
-        /***** Status Styles *****/
-        .status-active {
-            color: green;
-            font-weight: bold;
-        }
-        
-        .status-inactive {
-            color: red;
-            font-weight: bold;
-        }
-        
-        /***** Info Container *****/
-        .infoDisplayContainer {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-        }
-        
-        .viewOnlyInfoContainer {
-            display: block;
-            margin-bottom: 10px;
-        }
-        
-        /***** Update Button Styles *****/
-        #updateDesignationBtn {
-            margin-top: 20px;
-            background-color: #28a745;
-        }
-        
-        #updateDesignationBtn:hover {
-            background-color: #218838;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    
+    
     <div class="dashboardContainer">
         <!---------------------------------------------------- Start of header ----------------------------------------------------->
-        <div class="header">
+        <div class="dashboardHeader">
             <h1>Designation Master</h1>
-            <div>
+            <div class="buttonsGroup">
                 <button id="addDesignationBtn">Add Designation</button>
                 <button id="employeeDashboardBtn">Employee Dashboard</button>
             </div>
@@ -212,7 +23,7 @@
         <!------------------------------------------------------ End of header ---------------------------------------------------->
         
         <!-------------------------------------------- Start of designation-table-container ------------------------------------------>
-        <div class="designationTableContainer">
+        <div class="tableContainer">
             <table id="designationTable" class="display">
                 <thead>
                     <tr>
@@ -252,21 +63,16 @@
         <!------------------------------------------------ Start of add-designation-modal -------------------------------------------->
         <div class="modal" id="addDesignationModal">
             <div class="modalContent">
-                <span class="closeBtn" id="closeAddDesignationModal">&times;</span>
-                <h2>Add New Designation</h2>
+                <div class="formHeader">
+                    <h2>Add New Designation</h2>
+                    <span class="closeBtn" id="closeAddDesignationModal">&times;</span>
+                </div>
                 <form id="addDesignationForm">
-                    <div>
-                        <input type="text" name="name" placeholder="" required>
-                        <label>Designation Name</label>
+                    <div class="formGroup">
+                        <input type="text" name="name" class="formInput" placeholder="" required>
+                        <label class="formLabel">Designation Name</label>
                     </div>
-                    <!--<div>
-                        <select name="status" required>
-                            <option value="" disabled selected>Select Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                        <label>Status</label>
-                    </div>-->
+                    
                     <button type="submit" id="addDesignationSubmitBtn">Add Designation</button>
                     <div id="addDesignationFormErrorContainer"></div>
                 </form>
@@ -277,29 +83,33 @@
         <!-------------------------------------------- Designation Details Modal Start ---------------------------------------------->
         <div class="modal" id="viewDesignationModal">
             <div class="modalContent">
-                <span class="closeBtn" id="closeViewDesignationModal">&times;</span>
-                <h2>Designation Details</h2>
+                <div class="formHeader">
+                    <h2>Designation Details</h2>
+                    <span class="closeBtn" id="closeViewDesignationModal">&times;</span>
+                </div>
                 <form id="updateDesignationForm">
                     <div id="designationDetailsContent">
-                        <span class="viewOnlyInfoContainer"><b>Designation ID:</b> <span id="viewId"></span></span>
-                        
-                        <div>
-                            <input type="text" name="name" id="viewName" placeholder="" readonly>
-                            <label>Designation Name</label>
+                        <div class="info-card">
+                            <div><b>Designation ID:</b> <span id="viewId"></span></div>
                         </div>
                         
-                        <div>
-                            <select name="status" id="viewStatus" readonly>
+                        <div class="formGroup">
+                            <input type="text" name="name" id="viewName" class="formInput" placeholder="" readonly>
+                            <label class="formLabel">Designation Name</label>
+                        </div>
+                        
+                        <div class="formGroup">
+                            <select name="status" id="viewStatus" class="formInput" disabled>
                                 <option value="" disabled selected>Select Status</option>
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>
-                            <label>Status</label>
+                            <label class="formLabel">Status</label>
                         </div>
                         
-                        <div class="infoDisplayContainer">
-                            <span class="viewOnlyInfoContainer"><b>Created At:</b> <span id="viewCreatedAt"></span></span><br>
-                            <span class="viewOnlyInfoContainer"><b>Updated At:</b> <span id="viewUpdatedAt"></span></span><br>
+                        <div class="info-card">
+                            <div><b>Created At:</b> <span id="viewCreatedAt"></span></div>
+                            <div><b>Updated At:</b> <span id="viewUpdatedAt"></span></div>
                         </div>
                         
                         <button type="submit" id="updateDesignationBtn">Update Changes</button>
@@ -311,10 +121,13 @@
         
         <!-- Success Modal -->
         <div class="modal" id="successModal">
-            <div class="modalContent" style="width: 400px;">
-                <h2>✅ Designation Added Successfully</h2>
+            <div class="modalContent">
+                <div class="formHeader">
+                    <h2>✅ Designation Added Successfully</h2>
+                    <span class="closeBtn" onclick="closeSuccessModal()">&times;</span>
+                </div>
                 <div id="successDetails"></div>
-                <button onclick="closeSuccessModal()">OK</button>
+                <button onclick="closeSuccessModal()" style="margin-top: 20px;">OK</button>
             </div>
         </div>
     </div>
@@ -329,14 +142,26 @@
             $('#designationTable').DataTable({
                 "order": [[0, "asc"]],
                 "pageLength": 10,
-                "lengthMenu": [10, 25, 50, 100]
+                "lengthMenu": [10, 25, 50, 100],
+                "responsive": true,
+                "language": {
+                    "search": "Search:",
+                    "lengthMenu": "Show _MENU_ entries",
+                    "info": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "paginate": {
+                        "first": "First",
+                        "last": "Last",
+                        "next": "Next",
+                        "previous": "Previous"
+                    }
+                }
             });
         });
 
         // ========== MODAL FUNCTIONALITY ==========
         // Open Add Designation Modal
         document.getElementById('addDesignationBtn').addEventListener('click', function() {
-            document.getElementById('addDesignationModal').style.display = 'block';
+            document.getElementById('addDesignationModal').style.display = 'flex';
         });
 
         // Close Add Designation Modal
@@ -359,14 +184,16 @@
         // ========== SUCCESS MODAL FUNCTIONS ==========
         function showSuccessModal(designation) {
             const details = `
-                <p><strong>Designation ID:</strong> ${designation.id}</p>
-                <p><strong>Name:</strong> ${designation.name}</p>
-                <p><strong>Status:</strong> ${designation.status}</p>
-                <p><strong>Created At:</strong> ${designation.createdAt}</p>
+                <div class="info-card">
+                    <div><b>Designation ID:</b> ${designation.id}</div>
+                    <div><b>Name:</b> ${designation.name}</div>
+                    <div><b>Status:</b> ${designation.status}</div>
+                    <div><b>Created At:</b> ${designation.createdAt}</div>
+                </div>
             `;
             
             document.getElementById('successDetails').innerHTML = details;
-            document.getElementById('successModal').style.display = 'block';
+            document.getElementById('successModal').style.display = 'flex';
         }
 
         function closeSuccessModal() {
@@ -401,11 +228,13 @@
             
             if (isViewMode) {
                 nameField.setAttribute('readonly', true);
-                statusField.setAttribute('readonly', true);
+                nameField.classList.add('readonly');
+                statusField.setAttribute('disabled', true);
                 updateBtn.style.display = 'none';
             } else {
                 nameField.removeAttribute('readonly');
-                statusField.removeAttribute('readonly');
+                nameField.classList.remove('readonly');
+                statusField.removeAttribute('disabled');
                 updateBtn.style.display = 'block';
             }
         }
@@ -487,9 +316,8 @@
                 document.getElementById('viewCreatedAt').textContent = designation.createdAt;
                 document.getElementById('viewUpdatedAt').textContent = designation.updatedAt;
                                 
-                
                 // Show modal
-                document.getElementById('viewDesignationModal').style.display = 'block';
+                document.getElementById('viewDesignationModal').style.display = 'flex';
                 
             } catch (error) {
                 console.error('Error fetching designation details:', error);
@@ -564,6 +392,84 @@
                 document.getElementById('addDesignationFormErrorContainer').innerHTML = '';
             }
         });
+
+        // Add to your existing CSS or in a style tag
+        const style = document.createElement('style');
+        style.textContent = `
+            /* Additional styles for designation page */
+            .status-active {
+                color: #28a745;
+                font-weight: 600;
+                padding: 4px 8px;
+                background: #d4edda;
+                border-radius: 12px;
+                display: inline-block;
+            }
+            
+            .status-inactive {
+                color: #dc3545;
+                font-weight: 600;
+                padding: 4px 8px;
+                background: #f8d7da;
+                border-radius: 12px;
+                display: inline-block;
+            }
+            
+            .action-buttons {
+                display: flex;
+                gap: 8px;
+            }
+            
+            .viewDesignationBtn, .editDesignationBtn {
+                padding: 6px 12px;
+                font-size: 14px;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+            
+            .viewDesignationBtn {
+                background: #28a745;
+                color: white;
+                border: none;
+            }
+            
+            .viewDesignationBtn:hover {
+                background: #218838;
+            }
+            
+            .editDesignationBtn {
+                background: #ffc107;
+                color: #212529;
+                border: none;
+            }
+            
+            .editDesignationBtn:hover {
+                background: #e0a800;
+            }
+            
+            .error-message-onsubmit {
+                color: #721c24;
+                background-color: #f8d7da;
+                border: 1px solid #f5c6cb;
+                border-radius: 4px;
+                padding: 12px;
+                margin-top: 15px;
+                font-size: 14px;
+            }
+            
+            .formInput[readonly] {
+                background-color: #f8f9fa;
+                cursor: not-allowed;
+            }
+            
+            select.formInput[disabled] {
+                background-color: #f8f9fa;
+                cursor: not-allowed;
+                opacity: 0.7;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
