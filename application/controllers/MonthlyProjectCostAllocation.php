@@ -56,8 +56,9 @@ class MonthlyProjectCostAllocation extends MY_Controller
                 if (!empty($projectEmployees)) {
                     $allocationData = [];
                     $totalProjectCost = 0;
+                    $remainingAdjustment = 0;
                     
-                    foreach ($projectEmployees as $employeeId) {
+                    foreach ($projectEmployees as $index => $employeeId) {
                         // Get employee details
                         $employee = $this->EmployeeModel->getEmployeeById($employeeId);
                         
@@ -75,8 +76,16 @@ class MonthlyProjectCostAllocation extends MY_Controller
                                 $allProjectsEffortHours = $this->getEmployeeTotalEffort($employeeId, $startDate, $endDate);
                                 
                                 if ($allProjectsEffortHours > 0 && $projectEffortHours > 0) {
-                                    // Calculate cost allocation using the formula: (Project Effort / All Projects Effort) * Monthly CTC
-                                    $costAllocation = ($projectEffortHours / $allProjectsEffortHours) * $monthlyCtc;
+                                    // Calculate effort percentage
+                                    $effortPercentage = ($projectEffortHours / $allProjectsEffortHours) * 100;
+                                    
+                                    // Calculate cost allocation using the formula: (Effort% / 100) * Monthly CTC
+                                    $costAllocation = round(($effortPercentage / 100) * $monthlyCtc, 2);
+                                    
+                                    // Convert hours to hours:minutes format
+                                    $totalMinutes = round($projectEffortHours * 60);
+                                    $hours = floor($totalMinutes / 60);
+                                    $minutes = $totalMinutes % 60;
                                     
                                     $allocationData[] = [
                                         'employeeId' => $employeeId,
@@ -84,13 +93,30 @@ class MonthlyProjectCostAllocation extends MY_Controller
                                         'employeePublicId' => $employee->publicId,
                                         'monthlyCtc' => round($monthlyCtc, 2),
                                         'projectEffortHours' => round($projectEffortHours, 2),
+                                        'projectEffortDisplay' => sprintf("%dh / %02dm", $hours, $minutes),
+                                        'projectEffortMinutes' => $totalMinutes, // For sorting
                                         'allProjectsEffortHours' => round($allProjectsEffortHours, 2),
-                                        'costAllocation' => round($costAllocation, 2)
+                                        'effortPercentage' => round($effortPercentage, 2),
+                                        'costAllocation' => $costAllocation
                                     ];
                                     
                                     $totalProjectCost += $costAllocation;
                                 }
                             }
+                        }
+                    }
+                    
+                    // Adjust the last item to ensure no rounding error
+                    if (!empty($allocationData)) {
+                        // Calculate the sum of all allocations
+                        $calculatedTotal = array_sum(array_column($allocationData, 'costAllocation'));
+                        $difference = round($totalProjectCost - $calculatedTotal, 2);
+                        
+                        if (abs($difference) > 0) {
+                            $lastIndex = count($allocationData) - 1;
+                            $allocationData[$lastIndex]['costAllocation'] = 
+                                round($allocationData[$lastIndex]['costAllocation'] + $difference, 2);
+                            $totalProjectCost = $calculatedTotal + $difference;
                         }
                     }
                     

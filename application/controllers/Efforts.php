@@ -89,11 +89,13 @@ class Efforts extends MY_Controller
             $totalMinutes += ($hours * 60) + $minutes;
         }
         
-        // Convert total minutes to hours:minutes format
+        // Convert total minutes to proper hours:minutes format
+        // Handle 95 minutes -> 1 hour 35 minutes conversion
         $hours = floor($totalMinutes / 60);
         $minutes = $totalMinutes % 60;
         
-        return sprintf('%d:%02d', $hours, $minutes);
+        // Format as "3h/45m"
+        return sprintf('%dh/%02dm', $hours, $minutes);
     }
 
     /**
@@ -140,13 +142,19 @@ class Efforts extends MY_Controller
             // Get the created effort data
             $effort = $this->EffortModel->getEffortByPublicId($effortPublicId);
             
+            // Convert duration to "3h/45m" format
+            $durationParts = explode(':', $effort->duration);
+            $hours = intval($durationParts[0]);
+            $minutes = isset($durationParts[1]) ? intval($durationParts[1]) : 0;
+            $formattedDuration = sprintf('%dh/%02dm', $hours, $minutes);
+            
             echo json_encode([
                 'success' => true, 
                 'message' => 'Effort added successfully', 
                 'effort' => [
                     'publicId' => $effort->publicId,
                     'effortDate' => $effort->effortDate,
-                    'duration' => $effort->duration,
+                    'duration' => $formattedDuration,
                     'projectName' => $effort->projectName,
                     'createdAt' => $effort->createdAt
                 ]
@@ -192,13 +200,19 @@ class Efforts extends MY_Controller
                 // Get updated effort data
                 $effort = $this->EffortModel->getEffortByPublicId($effortPublicId);
                 
+                // Convert duration to "3h/45m" format
+                $durationParts = explode(':', $effort->duration);
+                $hours = intval($durationParts[0]);
+                $minutes = isset($durationParts[1]) ? intval($durationParts[1]) : 0;
+                $formattedDuration = sprintf('%dh/%02dm', $hours, $minutes);
+                
                 echo json_encode([
                     'success' => true, 
                     'message' => 'Effort duration updated successfully', 
                     'effort' => [
                         'publicId' => $effort->publicId,
                         'effortDate' => $effort->effortDate,
-                        'duration' => $effort->duration,
+                        'duration' => $formattedDuration,
                         'projectName' => $effort->projectName
                     ]
                 ]);
@@ -211,5 +225,18 @@ class Efforts extends MY_Controller
                 'message' => 'Error updating effort: ' . $e->getMessage()
             ]);
         }
+    }
+    
+    /**
+     * Convert duration to proper format (32hr 95min becomes 33hr 35min)
+     * This handles minutes overflow
+     */
+    private function convertDuration($hours, $minutes) {
+        // Handle minute overflow (e.g., 95 minutes = 1 hour 35 minutes)
+        $totalMinutes = ($hours * 60) + $minutes;
+        $hours = floor($totalMinutes / 60);
+        $minutes = $totalMinutes % 60;
+        
+        return sprintf('%dh/%02dm', $hours, $minutes);
     }
 }

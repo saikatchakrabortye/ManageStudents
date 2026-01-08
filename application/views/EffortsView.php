@@ -13,7 +13,7 @@
             <div class="dashboardHeader">
                 <h1>EFFORTS LIST</h1>
                 <div class="totalHoursDisplay" style="margin-top: 10px; background: #f5f5f5; padding: 10px 20px; border-radius: 5px; display: inline-block;">
-                    <strong>Total Hours Worked:</strong> <span id="totalHours"><?php echo $totalHoursWorked ?? '0:00'; ?></span>
+                    <strong>Total Hours Worked:</strong> <span id="totalHours"><?php echo $totalHoursWorked ?? '0h/00m'; ?></span>
                 </div>
                 <div class="buttonsGroup">
                 <button id="addEffortBtn">Add Effort</button>
@@ -143,7 +143,21 @@
                         <?php endif; ?>
                         <td><?php echo date('d-m-Y', strtotime($effort->effortDate)); ?></td>
                         <td><?php echo $effort->projectName; ?></td>
-                        <td id="duration-<?php echo $effort->publicId; ?>"><?php echo $effort->duration; ?></td>
+                        <td id="duration-<?php echo $effort->publicId; ?>">
+                            <?php 
+                            // Convert database duration (HH:MM:SS) to 3h/45m format
+                            $durationParts = explode(':', $effort->duration);
+                            $hours = intval($durationParts[0]);
+                            $minutes = isset($durationParts[1]) ? intval($durationParts[1]) : 0;
+                            
+                            // Handle minute overflow (e.g., 95 minutes = 1 hour 35 minutes)
+                            $totalMinutes = ($hours * 60) + $minutes;
+                            $hours = floor($totalMinutes / 60);
+                            $minutes = $totalMinutes % 60;
+                            
+                            echo sprintf('%dh/%02dm', $hours, $minutes);
+                            ?>
+                        </td>
                         <?php if ($this->session->userdata('designationId') == 10): ?>
                         <td>
                             <button class="edit-duration-btn" data-effort-id="<?php echo $effort->publicId; ?>">Edit</button>
@@ -597,6 +611,21 @@ const today = new Date().toISOString().split('T')[0];
 document.getElementById('fromDate').max = today;
 document.getElementById('toDate').max = today;
 
+// Function to convert 3h/45m back to HH:MM format for time input
+function formatDurationForTimeInput(durationText) {
+    // Remove 'h' and 'm' and split by '/'
+    const cleaned = durationText.replace(/[hm]/g, '');
+    const parts = cleaned.split('/');
+    
+    if (parts.length === 2) {
+        const hours = parseInt(parts[0]) || 0;
+        const minutes = parseInt(parts[1]) || 0;
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    }
+    
+    return '00:00';
+}
+
 // ========== EDIT DURATION FUNCTIONALITY ==========
 let currentEffortId = '';
 
@@ -654,7 +683,7 @@ document.addEventListener('click', function(e) {
             document.getElementById('editEffortId').value = effortIdCell;
             document.getElementById('editEffortDate').value = formattedDate;
             document.getElementById('editProjectName').value = projectNameCell;
-            document.getElementById('editEffortDuration').value = currentDuration;
+            document.getElementById('editEffortDuration').value = formatDurationForTimeInput(currentDuration);
             document.getElementById('editEffortPublicId').value = effortId;
             
             // Show modal
@@ -698,7 +727,7 @@ document.getElementById('editDurationForm').addEventListener('submit', async fun
         if (!result.success) {
             alert(cleanMessage);
         } else {
-            // Update the duration in the table
+            // Update the duration in the table (convert to 3h/45m format)
             const durationCell = document.getElementById(`duration-${effortPublicId}`);
             if (durationCell) {
                 durationCell.textContent = result.effort.duration;

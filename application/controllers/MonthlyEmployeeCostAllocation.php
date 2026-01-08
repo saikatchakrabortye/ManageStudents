@@ -33,7 +33,8 @@ class MonthlyEmployeeCostAllocation extends MY_Controller
             'totalEffortHours' => 0,
             'totalCostAllocation' => 0,
             'employeeCtc' => null,
-            'employeeName' => ''
+            'employeeName' => '',
+            'designationName' => ''
         ];
         
         // Load all employees for dropdown
@@ -46,6 +47,7 @@ class MonthlyEmployeeCostAllocation extends MY_Controller
             if ($employee) {
                 $data['employeeName'] = $employee->name;
                 $data['employeePublicId'] = $employee->publicId;
+                $data['designationName'] = $employee->designationName ?? 'Not specified';
                 
                 // Get employee's latest CTC
                 $ctcRecord = $this->EmployeeCtcModel->getLatestCtcRecordOfEmployee($employeeId);
@@ -64,33 +66,64 @@ class MonthlyEmployeeCostAllocation extends MY_Controller
                     $efforts = $this->getEmployeeEffortsByProject($employeeId, $startDate, $endDate);
                     
                     if (!empty($efforts)) {
-                        // Calculate total effort hours
-                        $totalEffortHours = array_sum(array_column($efforts, 'total_hours'));
+                        // Calculate total effort in hours
+                        $totalEffortHours = 0;
+                        foreach ($efforts as $effort) {
+                            $totalEffortHours += $effort['total_hours'];
+                        }
                         $data['totalEffortHours'] = $totalEffortHours;
                         
                         // Calculate allocation
                         $allocationData = [];
                         $totalCostAllocation = 0;
                         $totalEffortPercentage = 0;
+                        $remainingSalary = $monthlySalary; // Track remaining salary
                         
-                        foreach ($efforts as $effort) {
+                        foreach ($efforts as $index => $effort) {
                             $effortPercentage = ($totalEffortHours > 0) ? ($effort['total_hours'] / $totalEffortHours) * 100 : 0;
-                            $costAllocation = ($effortPercentage / 100) * $monthlySalary;
+                            $totalEffortPercentage += $effortPercentage;
+                            
+                            // Calculate cost allocation with precision
+                            if ($index == count($efforts) - 1) {
+                                // Last project gets the remaining salary to avoid rounding errors
+                                $costAllocation = $remainingSalary;
+                            } else {
+                                $costAllocation = round(($effortPercentage / 100) * $monthlySalary, 2);
+                                $remainingSalary -= $costAllocation;
+                            }
+                            
+                            // Convert decimal hours to proper hours and minutes with slash format
+                            $totalMinutes = round($effort['total_hours'] * 60);
+                            $hours = floor($totalMinutes / 60);
+                            $minutes = $totalMinutes % 60;
                             
                             $allocationData[] = [
                                 'projectName' => $effort['project_name'],
-                                'effortHours' => $effort['total_hours'],
+                                'effortHoursDecimal' => $effort['total_hours'], // Keep for sorting
+                                'effortHours' => sprintf("%dh / %02dm", $hours, $minutes), // New format with slash
+                                'effortMinutes' => $totalMinutes, // For proper sorting
                                 'effortPercentage' => round($effortPercentage, 2),
                                 'costAllocation' => round($costAllocation, 2)
                             ];
                             
                             $totalCostAllocation += $costAllocation;
-                            $totalEffortPercentage += $effortPercentage;
                         }
                         
                         $data['allocationData'] = $allocationData;
                         $data['totalCostAllocation'] = round($totalCostAllocation, 2);
                         $data['totalEffortPercentage'] = round($totalEffortPercentage, 2);
+                        
+                        // Verify the total equals monthly salary
+                        if (abs($totalCostAllocation - $monthlySalary) > 0.01) {
+                            // Adjust if there's a discrepancy due to rounding
+                            if (!empty($allocationData)) {
+                                $lastIndex = count($allocationData) - 1;
+                                $adjustment = $monthlySalary - $totalCostAllocation;
+                                $allocationData[$lastIndex]['costAllocation'] = round($allocationData[$lastIndex]['costAllocation'] + $adjustment, 2);
+                                $data['allocationData'] = $allocationData;
+                                $data['totalCostAllocation'] = round($monthlySalary, 2);
+                            }
+                        }
                     }
                 }
             }
@@ -118,39 +151,12 @@ class MonthlyEmployeeCostAllocation extends MY_Controller
         $query = $this->db->get();
         $results = $query->result_array();
         
-        // Convert seconds to hours
+        // Convert seconds to hours with 2 decimal places
         foreach ($results as &$result) {
             $result['total_hours'] = round($result['total_seconds'] / 3600, 2);
             unset($result['total_seconds']);
         }
         
         return $results;
-    }
-    
-    /**
-     * AJAX endpoint to get employee CTC
-     */
-    public function getEmployeeCtc()
-    {
-        header('Content-Type: application/json');
-        
-        $employeeId = $this->input->post('employeeId');
-        
-        if (empty($employeeId)) {
-            echo json_encode(['success' => false, 'message' => 'Employee ID is required']);
-            return;
-        }
-        
-        $ctcRecord = $this->EmployeeCtcModel->getLatestCtcRecordOfEmployee($employeeId);
-        
-        if ($ctcRecord) {
-            echo json_encode([
-                'success' => true,
-                'yearlyCtc' => $ctcRecord->yearlyCtc,
-                'monthlySalary' => round($ctcRecord->yearlyCtc / 12, 2)
-            ]);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'No CTC record found for this employee']);
-        }
     }
 }
