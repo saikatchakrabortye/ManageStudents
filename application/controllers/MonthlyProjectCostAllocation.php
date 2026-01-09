@@ -93,7 +93,7 @@ class MonthlyProjectCostAllocation extends MY_Controller
                                         'employeePublicId' => $employee->publicId,
                                         'monthlyCtc' => round($monthlyCtc, 2),
                                         'projectEffortHours' => round($projectEffortHours, 2),
-                                        'projectEffortDisplay' => sprintf("%dh / %02dm", $hours, $minutes),
+                                        'projectEffortDisplay' => sprintf("%d:%02d", $hours, $minutes),
                                         'projectEffortMinutes' => $totalMinutes, // For sorting
                                         'allProjectsEffortHours' => round($allProjectsEffortHours, 2),
                                         'effortPercentage' => round($effortPercentage, 2),

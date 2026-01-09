@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Monthly Project Cost Allocation</title>
+    <title>Total Project Cost</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="assets/styles.css">
@@ -82,6 +82,27 @@
             box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
         }
         
+        .form-control:disabled {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
         /* Info Bar */
         .info-bar {
             background: #e9ecef;
@@ -127,6 +148,12 @@
             font-size: 15px;
         }
         
+        .cost-value {
+            color: #dc3545;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
         /* No data message */
         .no-data {
             text-align: center;
@@ -144,6 +171,17 @@
             color: #6c757d;
             margin-bottom: 10px;
             font-size: 18px;
+        }
+        
+        /* Error message */
+        .error-message {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 14px;
         }
         
         /* Dropdown Styles */
@@ -231,7 +269,6 @@
             font-weight: 600;
             padding: 12px 15px;
             font-size: 14px;
-            white-space: nowrap;
         }
         
         #allocationTable tbody td {
@@ -250,7 +287,6 @@
             padding: 12px 15px;
             font-size: 14px;
             border-top: 2px solid #dee2e6;
-            text-align: right;
         }
         
         /* DataTable controls */
@@ -295,10 +331,34 @@
             border-color: #007bff;
         }
         
-        /* Column specific alignments */
-        .text-left { text-align: left; }
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
+        /* Column alignments */
+        #allocationTable th:first-child,
+        #allocationTable td:first-child {
+            text-align: left;
+        }
+        
+        #allocationTable th:nth-child(2),
+        #allocationTable td:nth-child(2) {
+            text-align: center;
+        }
+        
+        #allocationTable th:last-child,
+        #allocationTable td:last-child {
+            text-align: right;
+        }
+
+        .date-range-text {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.filter-group {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+}
         
         /* Responsive Design */
         @media (max-width: 992px) {
@@ -345,15 +405,6 @@
             .info-value {
                 font-size: 14px;
             }
-            
-            #allocationTable {
-                font-size: 13px;
-            }
-            
-            #allocationTable thead th,
-            #allocationTable tbody td {
-                padding: 8px 10px;
-            }
         }
         
         @media (max-width: 480px) {
@@ -372,13 +423,14 @@
             .form-control {
                 padding: 8px 10px;
             }
+            
+            #allocationTable thead th,
+            #allocationTable tbody td,
+            #allocationTable tfoot td {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
         }
-
-        /* Force footer alignment */
-#allocationTable tfoot td.text-right {
-    text-align: right !important;
-    padding-right: 20px !important;
-}
     </style>
 </head>
 <body>
@@ -386,156 +438,158 @@
     <div class="main-container">
         <!----------------- Header ----------------->
         <div class="page-header">
-            <h2 class="page-title">Monthly Project Cost Allocation</h2>
+            <h2 class="page-title">Total Project Cost</h2>
         </div>
         
         <!----------------- Filter Section ----------------->
-        <div class="filter-section">
-            <form id="allocationForm" method="GET" action="<?php echo base_url('MonthlyProjectCostAllocation'); ?>">
-                <div class="filter-row">
-                    
-                    <!-- Year Select -->
-                    <div class="filter-group">
-                        <label class="filter-label">Year</label>
-                        <select name="year" id="year" class="form-control">
-                            <?php 
-                            $currentYear = date('Y');
-                            for($i = $currentYear - 5; $i <= $currentYear + 5; $i++): ?>
-                                <option value="<?php echo $i; ?>" <?php echo $year == $i ? 'selected' : ''; ?>>
-                                    <?php echo $i; ?>
-                                </option>
-                            <?php endfor; ?>
-                        </select>
-                    </div>
-
-                    <!-- Month Select -->
-                    <div class="filter-group">
-                        <label class="filter-label">Month</label>
-                        <select name="month" id="month" class="form-control">
-                            <?php for($i = 1; $i <= 12; $i++): ?>
-                                <option value="<?php echo sprintf('%02d', $i); ?>" <?php echo $month == sprintf('%02d', $i) ? 'selected' : ''; ?>>
-                                    <?php echo date('F', mktime(0, 0, 0, $i, 1)); ?>
-                                </option>
-                            <?php endfor; ?>
-                        </select>
-                    </div>
-                    
-                    <!-- Project Dropdown -->
-                    <div class="filter-group">
-                        <label class="filter-label">Project</label>
-                        <div class="dropdown-container">
-                            <input type="text" id="projectSearchInput" class="form-control" 
-                                   placeholder="Select project..." 
-                                   style="cursor: pointer;"
-                                   value="<?php 
-                                        if (isset($selectedProjectId) && !empty($selectedProjectId)) {
-                                            foreach ($projects as $proj) {
-                                                if ($proj->id == $selectedProjectId) {
-                                                    echo htmlspecialchars($proj->name);
-                                                    break;
-                                                }
-                                            }
+<div class="filter-section">
+    <form id="costForm" method="GET" action="<?php echo base_url('TotalProjectCost'); ?>">
+        <div class="filter-row">
+            
+            <!-- Project Dropdown -->
+            <div class="filter-group">
+                <label class="filter-label">Select Project</label>
+                <div class="dropdown-container">
+                    <input type="text" id="projectSearchInput" class="form-control" 
+                           placeholder="Select project..." 
+                           style="cursor: pointer;"
+                           value="<?php 
+                                if (isset($selectedProjectId) && !empty($selectedProjectId)) {
+                                    foreach ($projects as $proj) {
+                                        if ($proj->id == $selectedProjectId) {
+                                            echo htmlspecialchars($proj->name . ' (' . $proj->publicId . ')');
+                                            break;
                                         }
-                                   ?>" readonly>
-                            <input type="hidden" name="projectId" id="selectedProjectId" 
-                                   value="<?php echo $selectedProjectId ?? ''; ?>">
-                            <div id="projectDropdown" class="dropdown-content">
-                                <input type="text" id="projectSearch" class="dropdown-search" placeholder="Search projects...">
-                                <div id="projectResults"></div>
-                            </div>
-                        </div>
+                                    }
+                                }
+                           ?>" readonly>
+                    <input type="hidden" name="projectId" id="selectedProjectId" 
+                           value="<?php echo $selectedProjectId ?? ''; ?>">
+                    <div id="projectDropdown" class="dropdown-content">
+                        <input type="text" id="projectSearch" class="dropdown-search" placeholder="Search projects...">
+                        <div id="projectResults"></div>
                     </div>
                 </div>
-            </form>
+            </div>
+            
+            <!-- Upto Date -->
+            <div class="filter-group">
+                <label class="filter-label">Upto Date</label>
+                <input type="date" name="uptoDate" id="uptoDate" class="form-control" 
+                       value="<?php echo $uptoDate ?? date('Y-m-d'); ?>"
+                       <?php echo empty($selectedProjectId) ? 'disabled' : ''; ?>>
+            </div>
+            
+            <!-- Search Button -->
+            <div class="filter-group" style="flex: none; min-width: 100px;">
+                <label class="filter-label" style="visibility: hidden;">Button</label>
+                <button type="submit" class="btn-primary" <?php echo empty($selectedProjectId) ? 'disabled' : ''; ?>>
+                    Search
+                </button>
+            </div>
         </div>
+        
+        <!-- Date Range Text - Moved outside filter-row -->
+        <div class="date-range-text">
+            <small>
+                Range: <?php echo isset($projectStartDate) ? date('d-m-Y', strtotime($projectStartDate)) : ''; ?> to Today
+            </small>
+        </div>
+        
+        <?php if (isset($error)): ?>
+        <div class="error-message">
+            <?php echo htmlspecialchars($error); ?>
+        </div>
+        <?php endif; ?>
+    </form>
+</div>
         
         <!----------------- Info Bar ----------------->
         <?php if (!empty($selectedProjectId)): ?>
         <div class="info-bar">
             <div class="info-item">
-                <span class="info-label">Period:</span>
-                <span class="info-value period-value"><?php echo date('F Y', strtotime("$year-$month-01")); ?></span>
-            </div>
-            <div class="info-item">
                 <span class="info-label">Project:</span>
                 <span class="info-value project-value"><?php echo htmlspecialchars($projectName ?? ''); ?></span>
             </div>
+            <div class="info-item">
+                <span class="info-label">Period:</span>
+                <span class="info-value period-value">
+                    <?php 
+                    if (isset($projectStartDate) && isset($uptoDate)) {
+                        echo date('d-m-Y', strtotime($projectStartDate)) . ' to ' . date('d-m-Y', strtotime($uptoDate));
+                    }
+                    ?>
+                </span>
+            </div>
+            <?php if (!empty($allocationData)): ?>
+            <!--<div class="info-item">
+                <span class="info-label">Total Project Cost:</span>
+                <span class="info-value cost-value">₹<?php //echo number_format($totalProjectCost, 2); ?></span>
+            </div>-->
+            <?php endif; ?>
         </div>
         <?php endif; ?>
         
         <!----------------- DataTable ----------------->
-<?php if (!empty($allocationData)): ?>
-<div class="table-container">
-    <table id="allocationTable" class="display" style="width:100%;">
-        <thead>
-            <tr>
-                <th class="text-left">Employee</th>
-                <th class="text-right">CTC (Monthly)</th>
-                <th class="text-center">Effort (Hours/Mins)</th>
-                <th class="text-center">Effort %</th>
-                <th class="text-right">Cost Allocation (₹)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php 
-            $totalMonthlyCtc = 0;
-            $totalEffortMinutes = 0;
-            $totalCostAllocation = 0;
-            
-            foreach ($allocationData as $row): 
-                $totalMonthlyCtc += $row['monthlyCtc'];
-                $totalEffortMinutes += $row['projectEffortMinutes'];
-                $totalCostAllocation += $row['costAllocation'];
-            ?>
-            <tr>
-                <td class="text-left"><?php echo htmlspecialchars($row['employeeName']); ?></td>
-                <td class="text-right" data-order="<?php echo $row['monthlyCtc']; ?>">
-                    ₹<?php echo number_format($row['monthlyCtc'], 2); ?>
-                </td>
-                <td class="text-center" data-order="<?php echo $row['projectEffortMinutes']; ?>">
-                    <?php echo $row['projectEffortDisplay']; ?>
-                </td>
-                <td class="text-center" data-order="<?php echo $row['effortPercentage']; ?>">
-                    <?php echo number_format($row['effortPercentage'], 2); ?>%
-                </td>
-                <td class="text-right" data-order="<?php echo $row['costAllocation']; ?>">
-                    ₹<?php echo number_format($row['costAllocation'], 2); ?>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-        <tfoot>
-            <tr>
-                <td class="text-right" style="padding-right: 20px;"><strong>TOTAL</strong></td>
-                <td class="text-right" style="font-weight: 700;">₹<?php echo number_format($totalMonthlyCtc, 2); ?></td>
-                <td class="text-center" style="font-weight: 700;">
+        <?php if (!empty($allocationData)): ?>
+        <div class="table-container">
+            <table id="allocationTable" class="display" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Effort (Hour:Mins)</th>
+                        <th>Cost Allocation (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
                     <?php 
-                    $totalHours = floor($totalEffortMinutes / 60);
-                    $totalMinutes = $totalEffortMinutes % 60;
-                    echo sprintf("%d:%02d", $totalHours, $totalMinutes);
+                    $totalEffortMinutes = 0;
+                    $totalCostAllocation = 0;
+                    
+                    foreach ($allocationData as $row): 
+                        $totalEffortMinutes += $row['totalEffortMinutes'];
+                        $totalCostAllocation += $row['costAllocation'];
                     ?>
-                </td>
-                <td class="text-center" style="font-weight: 700;">-</td>
-                <td class="text-right" style="font-weight: 700; color: #28a745;">
-                    ₹<?php echo number_format($totalCostAllocation, 2); ?>
-                </td>
-            </tr>
-        </tfoot>
-    </table>
-</div>
+                    <tr>
+                        <td><?php echo htmlspecialchars($row['employeeName']); ?></td>
+                        <td data-order="<?php echo $row['totalEffortMinutes']; ?>">
+                            <?php echo $row['totalEffortDisplay']; ?>
+                        </td>
+                        <td data-order="<?php echo $row['costAllocation']; ?>">
+                            ₹<?php echo number_format($row['costAllocation'], 2); ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td style="text-align: right; padding-right: 20px;"><strong>TOTAL</strong></td>
+                        <td style="text-align: center; font-weight: 700;">
+                            <?php 
+                            $totalHours = floor($totalEffortMinutes / 60);
+                            $totalMinutes = $totalEffortMinutes % 60;
+                            echo sprintf("%d:%02d", $totalHours, $totalMinutes);
+                            ?>
+                        </td>
+                        <td style="text-align: right; font-weight: 700; color: #28a745;">
+                            ₹<?php echo number_format($totalCostAllocation, 2); ?>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
         
         <?php elseif (!empty($selectedProjectId) && empty($allocationData)): ?>
         <div class="no-data">
             <h3>No Effort Data Found</h3>
             <p style="font-size: 16px; color: #868e96;">
                 No employees have logged efforts for <?php echo htmlspecialchars($projectName); ?> 
-                in <?php echo date('F Y', strtotime("$year-$month-01")); ?>
+                from <?php echo date('d-m-Y', strtotime($projectStartDate)); ?> to <?php echo date('d-m-Y', strtotime($uptoDate)); ?>
             </p>
         </div>
         <?php endif; ?>
     </div>
     </div>
-    
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <!-- DataTables -->
@@ -576,7 +630,7 @@
                 // Add event listeners
                 results.querySelectorAll('.dropdown-item.project-item').forEach(item => {
                     item.addEventListener('click', function() {
-                        selectProject(this.dataset.id, this.dataset.name);
+                        selectProject(this.dataset.id, this.dataset.name, this.dataset.publicid);
                     });
                 });
             } else {
@@ -584,17 +638,21 @@
             }
         }
         
-        function selectProject(projectId, projectName) {
+        function selectProject(projectId, projectName, projectPublicId) {
             // Update the input field
-            document.getElementById('projectSearchInput').value = projectName;
+            document.getElementById('projectSearchInput').value = `${projectName} (${projectPublicId})`;
             document.getElementById('selectedProjectId').value = projectId;
+            
+            // Enable upto date and search button
+            document.getElementById('uptoDate').disabled = false;
+            document.getElementById('costForm').querySelector('button[type="submit"]').disabled = false;
             
             // Hide dropdown and clear search
             document.getElementById('projectDropdown').style.display = 'none';
             document.getElementById('projectSearch').value = '';
             
             // Submit form automatically
-            document.getElementById('allocationForm').submit();
+            document.getElementById('costForm').submit();
         }
         
         // Close dropdown when clicking outside
@@ -606,6 +664,25 @@
                 projectDropdown.style.display = 'none';
             }
         });
+        
+        // ========== DATE VALIDATION ==========
+        document.getElementById('costForm').addEventListener('submit', function(e) {
+            const uptoDate = document.getElementById('uptoDate').value;
+            const today = new Date().toISOString().split('T')[0];
+            
+            if (uptoDate) {
+                if (new Date(uptoDate) > new Date(today)) {
+                    e.preventDefault();
+                    alert('Upto date cannot be in the future');
+                    return false;
+                }
+            }
+            return true;
+        });
+        
+        // Set max date to today
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('uptoDate').max = today;
         
         // ========== DATATABLE INITIALIZATION ==========
         <?php if (!empty($allocationData)): ?>
@@ -619,7 +696,7 @@
                 "info": true,
                 "autoWidth": true,
                 "responsive": true,
-                "order": [[4, 'desc']], // Default sort by Cost Allocation descending
+                "order": [[2, 'desc']], // Default sort by Cost Allocation descending
                 "language": {
                     "search": "Search employees:",
                     "lengthMenu": "Show _MENU_ entries",
@@ -638,19 +715,6 @@
             });
         });
         <?php endif; ?>
-        
-        // ========== AUTO-SUBMIT ON MONTH/YEAR CHANGE ==========
-        document.getElementById('month').addEventListener('change', function() {
-            if (document.getElementById('selectedProjectId').value) {
-                document.getElementById('allocationForm').submit();
-            }
-        });
-        
-        document.getElementById('year').addEventListener('change', function() {
-            if (document.getElementById('selectedProjectId').value) {
-                document.getElementById('allocationForm').submit();
-            }
-        });
         
         // ========== ENTER KEY IN PROJECT SEARCH ==========
         document.getElementById('projectSearch').addEventListener('keypress', function(e) {

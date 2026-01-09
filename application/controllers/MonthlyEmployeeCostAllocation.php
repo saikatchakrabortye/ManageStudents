@@ -100,7 +100,7 @@ class MonthlyEmployeeCostAllocation extends MY_Controller
                             $allocationData[] = [
                                 'projectName' => $effort['project_name'],
                                 'effortHoursDecimal' => $effort['total_hours'], // Keep for sorting
-                                'effortHours' => sprintf("%dh / %02dm", $hours, $minutes), // New format with slash
+                                'effortHours' => sprintf("%d:%02d", $hours, $minutes), // New format with slash
                                 'effortMinutes' => $totalMinutes, // For proper sorting
                                 'effortPercentage' => round($effortPercentage, 2),
                                 'costAllocation' => round($costAllocation, 2)

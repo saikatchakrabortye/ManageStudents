@@ -128,6 +128,16 @@ class Efforts extends MY_Controller
                 throw new Exception("Invalid project selected");
             }
 
+            // Get project details to validate date
+            $project = $this->ProjectModel->getProjectById($projectId);
+            
+            if (!$project) {
+                throw new Exception("Project not found");
+            }
+
+            // Validate effort date against project dates
+            $this->validateEffortDateAgainstProject($date, $project);
+
             // Prepare data
             $data = [
                 'projectId' => $projectId,
@@ -193,6 +203,21 @@ class Efforts extends MY_Controller
         }
         
         try {
+            // Get the effort to check its date
+            $effort = $this->EffortModel->getEffortByPublicId($effortPublicId);
+            
+            if (!$effort) {
+                throw new Exception("Effort not found");
+            }
+            
+            // Get project details to validate date
+            $project = $this->ProjectModel->getProjectById($effort->projectId);
+            
+            if ($project) {
+                // Validate effort date against project dates
+                $this->validateEffortDateAgainstProject($effort->effortDate, $project);
+            }
+            
             // Update effort duration
             $result = $this->EffortModel->updateEffortDuration($effortPublicId, $effortDuration);
             
@@ -238,5 +263,35 @@ class Efforts extends MY_Controller
         $minutes = $totalMinutes % 60;
         
         return sprintf('%dh/%02dm', $hours, $minutes);
+    }
+    
+    /**
+     * Validate effort date against project start and end dates
+     * 
+     * @param string $effortDate The effort date to validate
+     * @param object $project The project object containing startDate and endDate
+     * @throws Exception If effort date is invalid relative to project dates
+     */
+    private function validateEffortDateAgainstProject($effortDate, $project) {
+        // Check if project has a start date
+        if (!empty($project->startDate)) {
+            // Validate effort date is on or after project start date
+            $effortDateTime = new DateTime($effortDate);
+            $projectStartDate = new DateTime($project->startDate);
+            
+            if ($effortDateTime < $projectStartDate) {
+                $formattedStartDate = $projectStartDate->format('Y-m-d');
+                throw new Exception("Effort date cannot be before project start date ($formattedStartDate)");
+            }
+            
+            // Optional: Also check if effort date is before project end date (if end date exists)
+            if (!empty($project->endDate)) {
+                $projectEndDate = new DateTime($project->endDate);
+                if ($effortDateTime > $projectEndDate) {
+                    $formattedEndDate = $projectEndDate->format('Y-m-d');
+                    throw new Exception("Effort date cannot be after project end date ($formattedEndDate)");
+                }
+            }
+        }
     }
 }

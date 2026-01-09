@@ -478,7 +478,7 @@
                     <thead>
                         <tr>
                             <th style="text-align: left;">Project</th>
-                            <th style="text-align: center;">Effort (Hours / Mins)</th>
+                            <th style="text-align: center;">Effort (Hours:Mins)</th>
                             <th style="text-align: center;">Effort %</th>
                             <th style="text-align: right;">Cost Allocation (₹)</th>
                         </tr>
@@ -515,7 +515,7 @@
                                 <?php 
                                 $totalHours = floor($totalEffortMinutes / 60);
                                 $totalMinutes = $totalEffortMinutes % 60;
-                                echo sprintf("%dh / %02dm", $totalHours, $totalMinutes);
+                                echo sprintf("%d:%02d", $totalHours, $totalMinutes);
                                 ?>
                             </td>
                             <td style="text-align: center; font-weight: 700; color: #007bff;">
